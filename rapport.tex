@@ -71,7 +71,7 @@
 \usepackage{fancyhdr}
 \usepackage{fancyref}
 \pagestyle{fancy}
-\lhead{{\bf~Delaite A.,~Sanni F.}}
+\lhead{{\bf~Delaite A. - Sanni F.}}
 \chead{}
 \rhead{\textsc{MTH6312 - Projet}}
 \lfoot{}
@@ -104,11 +104,12 @@
 %\textsc{MTH6312: M\'ethodes Statistiques D'Apprentissage}\\[0.5cm]
 \today % la date du jour
 \end{center}
-\tableofcontents
 \end{titlepage}
 %%%% La page titre se termine ici
+\tableofcontents
+\newpage
 \section{Présentation des données}
-\noindent Dans ce projet, nous analysons la diversité génétique au sein des
+Dans ce projet, nous analysons la diversité génétique au sein des
 populations autochtones d'Amérique du Nord, d'Amérique centrale et d'Amérique
 latine. En effet nous disposons d'un jeu de données qui contient 5709 marqueurs
 génétiques relevés sur 494 individus appartenant à 27 populations autochtones
@@ -148,10 +149,9 @@ certains peuples sont proches en termes de position géographique.
 		\label{fig:map}
 	\end{center}
 \end{figure}
-La question intéréssante que nous posons est est-ce qu'un groupe éthnique à des
-caractéristiques propres et distinctives des autres groupes. Pour cela on peut
+La question intéressante que nous nous posons est la suivante : un groupe ethnique a t- il des caractéristiques propres et distinctives des autres groupes ? Pour cela on peut
 retourner le problème en essayant de prédire des quantités concernant les individus
-en se basant seulement sur leurs ADN. \\
+en se basant seulement sur leurs ADN. \vspace{2mm}\\
 Notre but est donc de construire un classificateur permettant d'associer un individu
 à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement
 certaines populations présentent des effectifs très faibles. Par exemple, nous
@@ -178,31 +178,30 @@ Pour palier à ce problème, nous décidons alors d'effectuer la classification 
 	## Brazil    Canada     Chile  Colombia CostaRica Guatemala    Mexico    Panama 
 	## 62        67        38       129        20        12       109        18 
 	## Paraguay      Peru 
-	## 19        20 
+	## 19             20 
 \end{lstlisting}
-Étudier ce problème de classification est meilleure car d'une part le plus faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la classification par pays, nous avions 27 classes tandis qu'ici nous n'avons plus que 10. Des méthodes telles que la régression logistique se comporte mieux lorsque $K$ n'est pas très grand.\vspace{3mm}\\
-La principale difficulté dans nos données provient du très grand nombre de variables explicatives. En effet nous sommes dans une situation où $n = 494$, le nombre d'observations est très petit par rapport au nombre de prédicteurs $p=5709$.\\
-Dans ce présent travail, nous allons appliquer différentes méthodes à nos pour ensuite en retenir la meilleure.
+Étudier ce problème de classification est meilleur car d'une part le plus faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la classification par pays, nous avions 27 classes tandis qu'ici nous n'en avons plus que 10. Des méthodes telles que la régression logistique se comporte mieux lorsque $K$ n'est pas très grand.\vspace{3mm}\\
+La principale difficulté dans nos données provient du très grand nombre de variables explicatives. En effet nous sommes dans une situation où le nombre d'observations $n = 494$ est très petit par rapport au nombre de prédicteurs $p=5709$.\\
+Dans ce présent travail, nous allons appliquer différentes méthodes à nos données pour ensuite en retenir la meilleure.
 \section{Méthodes basées sur la réduction de dimension}
-Dans un contexte de classification, la régression logistique apparaît comme un premier choix. Cependant $n$ étant très petit devant $p$, nous pouvons donc pas l'appliquer directement. Notre idée consiste donc à d'abord réduire la dimension en effectuant une analyse en composantes principales. Ensuite nous appliquons la régression logistique en utilisant quelques composantes somme variables indépendantes. Cette technique s'inspire essentiellement de la régression en composantes principales (PCR).\vspace{2mm}\\
+Dans un contexte de classification, la régression logistique apparaît comme un premier choix. Cependant $n$ étant très petit devant $p$, nous ne pouvons pas l'appliquer directement. Notre idée consiste donc à d'abord réduire la dimension en effectuant une analyse en composantes principales. Ensuite nous appliquons la régression logistique en utilisant quelques composantes comme variables indépendantes. Cette technique s'inspire essentiellement de la régression en composantes principales (PCR).\vspace{2mm}\\
 Pour toute la suite, nous divisons notre jeu de données en un ensemble d'apprentissage et un ensemble test. En raison de notre faible nombre d'observations, notre ensemble de test ne contient que 94 observations.\vspace{2mm}
 \begin{lstlisting}
-		# lecture du jeu de données
+	# lecture du jeu de données
 	NAm2 = read.table("NAm2.txt", header = T)
-	# séparation des données
+	# séparation des donnees
 	set.seed(12345)
 	train = sample(1:nrow(NAm2), 400)
 \end{lstlisting}
 \subsection{Analyse en composantes principales}
-Nous effectuons une analyse en composantes principales sur les 5709 variables explicatives. Les variables génétiques étant binaires, il n'est pas nécessaire ici qu'elles soient réduites. Le code ci-contre permet d'effectuer l'analyse.
+Nous effectuons une analyse en composantes principales sur les 5709 variables explicatives. Les variables génétiques étant binaires, il n'est pas nécessaire ici qu'elles soient réduites. Le code ci-contre permet d'effectuer l'analyse. \vspace{2mm}
 \begin{lstlisting}
 	pca = prcomp(NAm2[train,-c(1:8)])
 	pvar = ((pca$sdev/sum(pca$sdev))**2)*100
 	par(mfrow=c(1,2))
 	plot(1:length(pvar), pvar, type="p", col="blue", xlab="composantes",
 			ylab="pourcentage de variance expliquée", cex=0.5)
-	plot(1:length(pvar), cumsum(pvar), type="l", lwd=1.5, col="blue", xlab="composantes",
-			ylab="pourcentage de variance cumulée")
+	plot(1:length(pvar), cumsum(pvar), type="l", lwd=1.5, col="blue", xlab="composantes", ylab="pourcentage de variance cumulee")
 	par(mfrow=c(1,1))
 \end{lstlisting}
 \begin{figure}[h!]
@@ -218,12 +217,12 @@ et le pourcentage cumulé à droite. On peut noter que les 100 premières
 composantes expliquent environ 49\% de la variance et les 200 premières un peu
 moins de 75.  
 
-L'ACP est intéressante car elle a un aspect 'visuel', on peut projeter par
+\noindent L'ACP est intéressante car elle a un aspect 'visuel', on peut projeter par
 exemple les données sur deux composantes principales et afficher les données
 dans le plan. On prend par exemple les composantes 3 et 6 qui ont un beau
-rendu. Effectivement sur la figure \ref{fig:acp_pc36}, on voit deux voire trois
-groupes se dégager, les Surui, les Pima et les Arhuaco. Cela confirme l'intérêt
-de se baser sur les composantes principales pour nos données.
+rendu. Effectivement sur la figure \ref{fig:acp_pc36}, on voit deux, voire trois
+groupes se dégager, les \textit{Surui}, les \textit{Pima} et les \textit{Arhuaco}. Cela confirme l'intérêt
+de se baser sur les composantes principales pour analyser nos données.
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.7]{figures/pc36.pdf}
@@ -232,7 +231,7 @@ de se baser sur les composantes principales pour nos données.
 	\end{center}
 \end{figure}
 
-Voici le code utilisé pour générer la figure
+Voici le code utilisé pour générer la figure \ref{fig:acp_pc36}.
 \begin{lstlisting}
 	comps=c(3,6)
 	plot(pca$x[,comps],col="white")
@@ -242,13 +241,12 @@ Voici le code utilisé pour générer la figure
 	}
 	legend("bottomright",legend=names,col=colPalette,lty=-1,pch=pch,cex=.75,ncol=3,lwd=2, bg="white")
 \end{lstlisting}
-
 Maintenant que nous avons les composantes principales, nous
 pouvons effectuer la régression logistique.
 \subsection{Régression logistique} 
 Pour effectuer la régression logistique, nous devons d'abord choisir le nombre
 de composantes principales. Nous pourrions appliquer la méthode du \og coude
-\fg pour choisir le nombre de composantes optimal mais nous préférons utiliser
+\fg  pour choisir le nombre de composantes optimal mais nous préférons utiliser
 la validation croisée. En effet, nous allons considérer des nombres différents
 de composantes et calculer le taux d'erreur en utilisant un \og 10-folds\fg.
 Nous choisissons alors le nombre de composantes pour lequel ce taux d'erreur
@@ -258,7 +256,7 @@ Notons que pour faire la régression logistique nous utilisons la fonction
 
 \begin{lstlisting}
 	# La fonction cv_error calcule le taux d'erreur par validation croisée pour un 
-	# nombre de composantes donné
+	# nombre de composantes donne
 	cv_error <- function(idx, ncomp, method) {
 		nfolds = 40
 		err = numeric(10)
@@ -304,9 +302,9 @@ Notons que pour faire la régression logistique nous utilisons la fonction
 	\end{center}
 \end{figure}
 La figure \ref{fig:nopt_log} représente le taux d'erreur en fonction du nombre de composantes. On voit que celui-ci diminue dans un premier temps mais commence à remonter assez tôt à partir de 100 composantes. Le minimum est atteint pour 75 composantes soit 40.89\% de variance expliquée. Naïvement, on aurait pu penser que prendre 300 composantes aurait été un meilleur choix puisqu'elles expliquent plus de 80\% de la variance.\vspace{3mm}\\
-Une fois le nombre de composantes principales déterminée, nous pouvons appliquer notre classificateur sur notre ensemble test. D'abord il faut que nous projetons les données de l'ensemble test sur les axes de l'ACP.
+Une fois le nombre de composantes principales déterminé, nous pouvons appliquer notre classificateur sur notre ensemble test. D'abord il faut que nous projetons les données de l'ensemble test sur les axes de l'ACP.
 \begin{lstlisting}
-	# projetcion des données test sur les axes de l ACP
+	# projetcion des donnees test sur les axes de l ACP
 	test_data = scale(NAm2[-train,-c(1:8)], pca$center, pca$scale) %*% pca$rotation
 	test.log = as.data.frame(test_data[,1:ncomp_opt])
 	
@@ -319,24 +317,24 @@ Une fois le nombre de composantes principales déterminée, nous pouvons appliqu
 	mean(NAm2$Country[-train]!=preds.log)
 	## [1] 0.106383
 \end{lstlisting}
-Nous trouvons un taux d'erreur égale \[Err_{ACP}^{log} = 0.106\] soit 10 personnes mal classé sur 94. Quand on regarde plus en détails les erreurs, on voit qu'un seul individu de \textbf{Peru} a été bien classé sur les cinq présents. Aussi le seul guatémaltèque a été mal classé. On peut noter que l'ensemble d'apprentissage ne contenaient que 10 individus dans ces deux classes.
+Nous trouvons un taux d'erreur égale\vspace{-5mm} \[Err_{ACP}^{log} = 0.106\] soit 10 personnes mal classées sur 94. Quand on regarde plus en détails les erreurs, on voit qu'un seul individu de \textbf{Peru} a été bien classé sur les cinq présents. Aussi le seul guatémaltèque a été mal classé. On peut noter que l'ensemble d'apprentissage ne contenaient que 10 individus dans ces deux classes.\vspace{2mm}
 \begin{lstlisting}
 	table(NAm2$Country[-train], preds.log)
 	## 			Brazil Canada Chile Colombia CostaRica Guatemala Mexico Panama Paraguay Peru
-	## Brazil     9      0     0        1         0         0      1      0        0       0
-	## Canada     0     15     0        0         0         0      0      0        0       0
-	## Chile      0      0     7        0         0         0      0      0        0       0
-	## Colombia   0      1     0       21         0         0      1      0        0       0
-	## CostaRica  0      0     0        0         3         0      0      0        0       0
-	## Guatemala  0      0     0        1         0         0      0      0        0       0
-	## Mexico     0      0     0        1         0         0     22      0        0       0
-	## Panama     0      0     0        0         0         0      0      2        0       0
-	## Paraguay   0      0     0        0         0         0      0      0        4       0
-	## Peru       1      0     1        2         0         0      0      0        0       1
+	## Brazil     9      0     0        1         0         0      1      0        0          0
+	## Canada     0     15     0        0         0         0      0      0        0          0
+	## Chile      0      0     7        0         0         0      0      0        0          0
+	## Colombia   0      1     0       21         0         0      1      0        0          0
+	## CostaRica  0      0     0        0         3         0      0      0        0          0
+	## Guatemala  0      0     0        1         0         0      0      0        0          0
+	## Mexico     0      0     0        1         0         0     22      0        0          0
+	## Panama     0      0     0        0         0         0      0      2        0          0
+	## Paraguay   0      0     0        0         0         0      0      0        4          0
+	## Peru       1      0     1        2         0         0      0      0        0          1
 \end{lstlisting}
 \subsection{Analyse discriminante linéaire}
 Un autre classificateur très populaire est celui de l'analyse discriminante linéaire. Une hypothèse de normalité au sein des variables explicatives est tout à fait plausible dans ce contexte. Nous avons d'abord essayer d'appliquer la méthode directement sur les données mais celle-ci a échoué. En effet même si théoriquement elle peut marcher sur ces données, l'inversion de la matrice de covariance $\Sigma$ est très instable numériquement.\\
-Nous avons donc décider comme pour la régression logistique d'appliquer l'analyse sur les données composantes principales. Ici aussi un choix du nombre de composantes est faits par validation croisée. Le code R ci-contre permet d'effectuer cette sélection.\vspace{2mm}
+Nous avons donc décider comme pour la régression logistique d'appliquer l'analyse sur les composantes principales. Ici aussi un choix du nombre de composantes est fait par validation croisée. Le code R ci-contre permet d'effectuer cette sélection.\vspace{2mm}
 \begin{lstlisting}
 	require(MASS)
 	ncomp_lda = seq(20,340,5)
@@ -361,7 +359,7 @@ Nous avons donc décider comme pour la régression logistique d'appliquer l'anal
 		\label{fig:nopt_lda}
 	\end{center}
 \end{figure}
-La figure \ref{fig:nopt_lda} représente le taux d'erreur en fonction du nombre de composantes. Ce taux est minimal pour 135 composantes. On sélectionne environ deux fois plus de composantes avec cette méthode. Ce qui montre que le nombre de composantes à choisir est propre à chaque méthode. Nous calculons donc le taux d'erreur test avec 135 composantes.\vspace{2mm}
+\noindent La figure \ref{fig:nopt_lda} représente le taux d'erreur en fonction du nombre de composantes. Ce taux est minimal pour 135 composantes. On sélectionne environ deux fois plus de composantes avec cette méthode. Ce qui montre que le nombre de composantes à choisir est propre à chaque méthode. Nous calculons donc le taux d'erreur test avec 135 composantes.\vspace{2mm}
 \begin{lstlisting}
 	# donnees pour la LDA
 	gen_lda = data.frame(Country=NAm2$Country[train], pca$x[,1:nopt_lda])
@@ -372,7 +370,7 @@ La figure \ref{fig:nopt_lda} représente le taux d'erreur en fonction du nombre 
 	mean(NAm2$Country[-train] != preds.lda)
 	## 0.09574468
 \end{lstlisting}
-On obtient un taux d'erreur \[Err_{ACP}^{LDA} = 0.096\]
+On obtient un taux d'erreur \vspace{-3mm}\[Err_{ACP}^{LDA} = 0.096\]
 L'analyse linéaire discriminante classe correctement un individu de plus que la régression logistique. En effet elle classe correctement un individu de \textit{Mexico}. Les deux méthodes classent mal deux habitants de \textit{Brazil} mais se trompent différemment pour l'un des deux. Le reste est identique. \vspace{4mm}\\
 Nous avons essayé d'appliquer l'analyse discriminante quadratique en suivant le même schéma mais celle-ci a échoué car une classe ne contenait pas assez d'effectifs.
 
@@ -403,10 +401,10 @@ Comme dans le cas de la régression linéaire, nous utilisons le package \textbf
 La figure \ref{fig:r_lambda} représente l'évolution des coefficients de la
 régression logistique pour la classe \textbf{Paraguay} en fonction du
 logarithme de $\lambda$. On voit bien l'effet du rétrécissement des
-coefficients.\\
+coefficients qui tendent vers 0 pour de grandes valeurs de $\lambda$.\\
 Le graphique de gauche sur la figure \ref{fig:r_lopt} montre l'évolution du
 taux d'erreur en fonction de $\lambda$. Ce graphique suggère que la valeur
-optimale $\lambda$ se trouve dans les faibles valeurs. Nous changeons alors
+optimale de $\lambda$ se trouve dans les faibles valeurs. Nous changeons alors
 notre grille de recherche et obtenons le graphique de droite sur la figure
 \ref{fig:r_lopt}. Plusieurs valeurs donnent un taux d'erreur minimal (figure
 \ref{fig:zoom_r} ); on choisit alors $\lambda^* = 0.001$.\vspace{2mm}
@@ -448,8 +446,8 @@ On calcule maintenant le taux d'erreur sur l'ensemble test. \vspace{2mm}
 	mean(NAm2$Country[-train] != preds.ridge)
 	## [1] 0.05319149
 \end{lstlisting}
-On obtient un taux d'erreur plus petit que celui des deux méthodes précédentes.\vspace{-3mm} \[Err_{Ridge}^{log} = 0.053\]
-Nous classons correctement 89 individus sur 94. Un des deux brésiliens a été bien classé. Aussi un seul péruvien sur cinq est correctement classé. On notera que ce classificateur ne se trompe pas de la même manière que les deux autres sur les péruviens.
+On obtient un taux d'erreur plus petit que celui des deux méthodes précédentes.\vspace{-3mm} \[Err_{Ridge}^{log} = 0.053\vspace{-4mm}\]
+Nous classons correctement 89 individus sur 94. Un des deux brésiliens a été bien classé. Aussi un seul péruvien sur cinq est correctement classé. On notera que ce classificateur ne se trompe pas de la même manière que les deux autres sur les péruviens. \vspace{2mm}
 \begin{lstlisting}
 	table(NAm2$Country[-train], preds.ridge)
 	## 			Brazil Canada Chile Colombia CostaRica Guatemala Mexico Panama Paraguay Peru
@@ -497,24 +495,23 @@ Nous calculons le taux d'erreur sur l'ensemble de test.
 \end{lstlisting}
 Nous obtenons un taux d'erreur plus élevé que toutes celui des trois méthodes
 précédentes. En effet nous ne classons correctement que 81 individus. On peut
-remarquer aucun individu de\textit{Panama} n'a été prédit. Par contre cette
-méthode fait mieux que les précédentes sur les individus de \textit{Pérou}
-puisqu'elle en classe correctement 2.
-
+remarquer qu'aucun individu de\textit{Panama} n'a été prédit alors qu'il y'en avait deux. Par contre cette
+méthode fait mieux que les précédentes sur les individus de \textit{Péru}
+puisqu'elle en classe correctement~2.\vspace{3mm}\\
+On pourrait donc penser à utiliser une régularisation de type \og elastic net \fg pour prendre en compte les deux pénalités Lasso et Ridge puisque Lasso semble mieux prédire les individus de \textit{Péru}. Cette technique n'a toutefois pas été testé dans ce projet.
 \section{Méthodes non paramétriques}
 \subsection{K plus proches voisins}
 Une autre méthode populaire de classification est la méthode des plus proches
-voisins. Cette méthode utilise le concept de distance. Cette méthode est
+voisins. Cette méthode utilise le concept de distance. Elle est
 pertinente car on voudrait que les individus ayant des ADN proches (en terme
 de la distance utilisée par KNN) soit de la même population ou du même pays. \\
 Aussi les méthodes utilisées précédemment supposent que nos données
 sont linéairement séparables. La méthode KNN quant à elle peut produire un
 classificateur non linéaire.\vspace{3mm}\\
 Ici une réduction des données n'est pas nécessaire. Nous utilisons directement
-nos données. Nous choisissons le $K$ optimal par validation croisée. Nous
+nos données et choisissons le $K$ optimal par validation croisée. Nous
 faisons varier $K$ de 2 à 30. Le code R ci-contre permet d'effectuer cette
 sélection.\vspace{2mm}
-
 \begin{lstlisting}
 	require(class)
 	nfolds = 40
@@ -536,12 +533,12 @@ sélection.\vspace{2mm}
 \end{lstlisting}
 \begin{figure}[h!]
 	\begin{center}
-		\includegraphics[scale=0.5]{figures/kopt.pdf}
+		\includegraphics[scale=0.6]{figures/kopt.pdf}
 		\caption{Taux d'erreur en fonction de $K$.}
 		\label{fig:kopt}
 	\end{center}
 \end{figure}
-La figure \ref{fig:kopt} représente l'évolution du taux d'erreur en fonction de $K$. Le taux d'erreur est minimal pour $K^* = 9$. Nous calculons maintenant le taux d'erreur sur l'ensemble test. \vspace{2mm}
+La figure \ref{fig:kopt} représente l'évolution du taux d'erreur en fonction de $K$. Le taux d'erreur est minimal pour $K^* = 9$. Nous calculons maintenant le taux d'erreur sur l'ensemble test.\vspace{2mm}
 \begin{lstlisting}
 	preds.knn = knn(train=NAm2[train,-(1:8)], test = NAm2[-train, -(1:8)],
 	                cl=NAm2$Country[train], k=kopt)
@@ -552,7 +549,7 @@ Elle classe un individu moins bien que la régression logistique avec Lasso. Ell
 \subsection{Arbres de décision}
 La dernière classe de méthodes que nous considérons est celle basée sur les arbres de décision. Dans cette partie, nous appliquons un arbre de classification, du bagging et du random forests. Ces méthodes ne nécessitent pas une réduction de dimension ; elles s'appliquent directement aux données.
 \subsubsection{Arbre de classification}
-Le code ci-contre permet d'effectuer cet ajustement. Notons que nous utilisons le package \textbf{rpart} plutôt que le package \textbf{tree}. En effet ce dernier ne marchait pas sur les données.
+Le code ci-contre permet d'effectuer l'ajustement d'un arbre de classification. Notons que nous utilisons le package \textbf{rpart} plutôt que le package \textbf{tree}. En effet ce dernier ne marchait pas sur les données.\vspace{2mm}
 \begin{lstlisting}
 	require(rpart)
 	set.seed(12345)
@@ -568,8 +565,8 @@ Le code ci-contre permet d'effectuer cet ajustement. Notons que nous utilisons l
 		\label{fig:tree}
 	\end{center}
 \end{figure}
-La figure \ref{fig:tree} représente l'arbre obtenu. On note que sur les 5709 variables disponibles seules 24 ont été utilisées pour construire l'arbre. Aussi on note que les classes \textit{Canada} et \textit{Mexico} sont identifiées très haut dans l'arbre.\\
-Nous obtenons un taux d'erreur sur l'ensemble de test très élevé : \hspace{5mm}$Err_{tree} = 0.489$. \vspace{2mm}
+La figure \ref{fig:tree} représente l'arbre obtenu. On note que sur les 5709 variables disponibles seules 24 ont été utilisées pour construire l'arbre. Aussi on note que les classes \textit{Canada} et \textit{Mexico} sont identifiées très haut dans l'arbre. On retrouve les avantages d'interprétation des arbres.\\
+Nous obtenons un taux d'erreur sur l'ensemble de test très élevé : \hspace{5mm}$Err_{tree} = 0.489$. Il est certes meilleur que le classificateur uniforme mais comparativement aux méthodes précédentes, il est très mauvais. \vspace{2mm}
 \begin{lstlisting}
 	preds.tree = predict(fit.tree, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
 	mean(NAm2$Country[-train] != preds.tree)
@@ -595,9 +592,9 @@ Comme on peut le voir sur la figure \ref{fig:prune_tree}, on obtient un arbre pl
 	mean(NAm2$Country[-train] != preds.prune)
 	## [1] 0.5212766
 \end{lstlisting}
-Il n'est pas étonnant que d'obtenir des taux moins bons. En fait, nous somme limités dans la taille de notre arbre d'une part par le package que nous utilisons et d'autre part par notre faible nombre d'observations. Ce qui entraîne qu'un faible nombre de variables soient utilisées dans la construction de l'arbre.
+Il n'est pas étonnant d'obtenir des taux moins bons. En fait, nous somme limités dans la taille de notre arbre d'une part par le package que nous utilisons et d'autre part par notre faible nombre d'observations. Ce qui entraîne qu'un faible nombre de variables soient utilisées dans la construction de l'arbre.
 \subsubsection{Bagging}
-Nous essayons maintenant avec la méthode \textit{bagging}.
+Nous essayons maintenant avec la méthode \textit{bagging}.\vspace{2mm}
 \begin{lstlisting}
 	require(randomForest)
 	set.seed(12345)
@@ -609,7 +606,7 @@ Nous essayons maintenant avec la méthode \textit{bagging}.
 \end{lstlisting}
 On note une amélioration par rapport à l'arbre de classification puisque le taux d'erreur descend à 0.32. Mais il demeure très élevé comparé à la régression logistique ou encore au KNN.
 \subsubsection{Random Forests}
-Enfin nous appliquons la méthode random forests. Elle est identique au bagging sauf que plutôt que de considérer toutes les variables à chaque coupe, on considère un sous-ensemble de $m$ variables. On teste d'abord le cas classique $m=\sqrt{p} = 75$.
+Enfin nous appliquons la méthode random forests. Elle est identique au bagging sauf que plutôt que de considérer toutes les variables à chaque coupe, on considère un sous-ensemble de $m$ variables. On teste d'abord le cas classique $m=\sqrt{p} = 75$.\vspace{2mm}
 \begin{lstlisting}
 	set.seed(12345)
 	fit.rand = randomForest(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, mtry=75)
@@ -617,9 +614,9 @@ Enfin nous appliquons la méthode random forests. Elle est identique au bagging 
 	mean(NAm2$Country[-train] != preds.rand)
 	## [1] 0.3191489
 \end{lstlisting}
-Bizarrement on obtient le même taux d'erreur que le bagging. Nous avons testons d'autres valeurs pour $m$ et nous obtenons toujours le même taux d'erreur. Il apparaît donc qu'il s'agit du meilleur taux que l'on peut espérer avec cette méthode.
+Bizarrement on obtient le même taux d'erreur que le bagging. Nous avons testé d'autres valeurs pour $m$ et nous obtenons toujours le même taux d'erreur. Il apparaît donc qu'il s'agit du meilleur taux que l'on peut espérer avec cette méthode.
 \section{Conclusion}
-Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que les taux d'erreur.
+Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que leur taux d'erreur. \vspace{-4mm}
 \begin{center}
 	\captionof{table}{Taux d'erreur des différentes méthodes}
 	\begin{tabular}{|c|c|}
@@ -636,9 +633,9 @@ Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que 
 	\end{tabular}
 	\label{tab:resume}
 \end{center}
-\section{Conclusion}
+~\\
 La régression logistique avec une régularisation Ridge est clairement la meilleure. En effet elle donne le taux d'erreur le plus faible. Elle se trompe sur 5 individus dont 4 appartiennent à la classe \textit{Péru} qui n'avait que 10 individus dans l'ensemble d'apprentissage. Il est tout à fait raisonnable de dire qu'avec plus d'effectifs dans cette classe, nous obtiendrons un meilleur taux d'erreur.\vspace{3mm}\\
 Les données semblent linéairement séparables puisque l'analyse discriminante et la régression logistique sont les méthodes qui donnent les meilleurs résultats.\\
-Les méthodes basées sur les arbres de décision marchent très mal ici car il n'est pas possible de construire des arbres suffisamment grand.On pourrait également essayer d'utiliser les composantes principales pour construire les arbres. Un test rapide a effectivement indiqué une légère baisse du taux d'erreur. Mais vu que la régression logistique avec Ridge marche plutôt bien, nous ne nous sommes pas attardés sur cette technique.\vspace{3mm}\\
-En somme, nous voyons qu'il est possible en fonction des marqueurs génétiques d'associer un individu à une pays donné. Il est tout à fait raisonnable d'affirmer qu'avec un nombre d'observations plus importants, nous obtiendrons des résultats tout à fait similaires si nous choisissons d'effectuer la classification en fonction de la population plutôt que du pays.
+Les méthodes basées sur les arbres de décision marchent très mal ici car il n'est pas possible de construire des arbres suffisamment grand. On pourrait également essayer d'utiliser les composantes principales pour construire les arbres. Un test rapide a effectivement indiqué une légère baisse du taux d'erreur. Mais vu que la régression logistique avec Ridge marche plutôt bien, nous ne nous sommes pas attardés sur cette technique.\vspace{3mm}\\
+En somme, nous voyons qu'il est possible en fonction des marqueurs génétiques d'associer un individu à un pays donné. Il est tout à fait raisonnable d'affirmer qu'avec un nombre d'observations plus importants, nous obtiendrons des résultats tout à fait similaires si nous choisissons d'effectuer la classification en fonction de la population plutôt que du pays.
 \end{document}

@@ -104,14 +104,23 @@
 \vspace{2in}
 \textsc{\LARGE Projet de session}\\[1.5cm]
 \vspace{2in}
-\textsc{\Large Antoine Delaite~18150xx\\Farooq Sanni~1815085}\\[0.5cm]
+\textsc{\Large Antoine Delaite~1815096\\Farooq Sanni~1815085}\\[0.5cm]
 %\textsc{MTH6312: M\'ethodes Statistiques D'Apprentissage}\\[0.5cm]
 \today % la date du jour
 \end{center}
 \end{titlepage}
 %%%% La page titre se termine ici
 \section{Présentation des données}
-\noindent Dans ce projet, nous analysons la diversité génétique au sein des populations autochtones d'Amérique du Nord, d'Amérique centrale et d'Amérique latine. En effet nous disposons d'un jeu de données qui contient 5709 marqueurs génétiques relevés sur 494 individus appartenant à 27 populations autochtones d'Amérique. Nous disposons également d'information sur la localisation géographique de chaque population notamment la longitude, la latitude et le pays où se trouvait cette population. On notera que tous les individus du jeu de données sont de sexe masculin. On peut voir la structure des données ci-dessous.\vspace{2mm}
+\noindent Dans ce projet, nous analysons la diversité génétique au sein des
+populations autochtones d'Amérique du Nord, d'Amérique centrale et d'Amérique
+latine. En effet nous disposons d'un jeu de données qui contient 5709 marqueurs
+génétiques relevés sur 494 individus appartenant à 27 populations autochtones
+d'Amérique. Nous disposons également d'information sur la localisation
+géographique de chaque population notamment la longitude, la latitude et le
+pays où se trouvait cette population. On notera que tous les individus du jeu
+de données sont de sexe masculin. On peut voir la structure des données
+ci-dessous.\vspace{2mm}
+
 \begin{lstlisting}
 	str(NAm2)
 	'data.frame':	494 obs. of  5717 variables:
@@ -134,7 +143,25 @@
 	$ L1.152               : int  0 0 0 0 0 0 0 0 0 0 ...
 	$ L1.155               : int  0 0 0 0 0 0 1 0 1 1 ...
 \end{lstlisting}
-Notre but est de construire un classificateur permettant d'associer un individu à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement certaines populations présentent des effectifs très faibles. Par exemple, nous ne disposons que de 7 individus de la population \textit{Kaingang} et de 10 individus pour la population \textit{Guarani}. Effectuer une classification avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
+
+Voici la répartition des populations sur le continent américain. On voit que 
+certains peuples sont proches en termes de position géographique.
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.8]{figures/map.pdf}
+		\caption{Répartition des populations autochtones sur le continent américain}
+		\label{fig:acp_plot}
+	\end{center}
+\end{figure}
+
+Notre but est de construire un classificateur permettant d'associer un individu
+à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement
+certaines populations présentent des effectifs très faibles. Par exemple, nous
+ne disposons que de 7 individus de la population \textit{Kaingang} et de 10
+individus pour la population \textit{Guarani}. Effectuer une classification
+avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
+
 \begin{lstlisting}
 	table(NAm2$Pop)
 	##
@@ -147,7 +174,9 @@ Notre but est de construire un classificateur permettant d'associer un individu 
 	## Quechua       Surui TicunaArara     Waunana       Wayuu     Zapotec 
 	## 20          21          17          20          17          19 
 \end{lstlisting}
-Pour palier à ce problème, nous décidons alors d'effectuer la classification par pays c'est à dire qu'un individu sera associé à un pays selon ses marqueurs génétiques. 
+Pour palier ce problème, nous décidons alors d'effectuer la classification
+par pays c'est à dire qu'un individu sera associé à un pays selon ses marqueurs
+génétiques.  
 \vspace{2mm}
 \begin{lstlisting}
 	table(NAm2$Country)
@@ -156,21 +185,43 @@ Pour palier à ce problème, nous décidons alors d'effectuer la classification 
 	## Paraguay      Peru 
 	## 19        20 
 \end{lstlisting}
-Étudier ce problème de classification est meilleure car d'une part le plus faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la classification par pays, nous avions 27 classes tandis qu'ici nous n'avons plus que 10. Des méthodes telles que la régression logistique se comporte mieux lorsque $K$ n'est pas très grand.\vspace{3mm}\\
-La principale difficulté dans nos données provient du très grand nombre de variables explicatives. En effet nous sommes dans une situation où $n = 494$, le nombre d'observations est très petit par rapport au nombre de prédicteurs $p=5709$.\\
-Dans ce présent travail, nous allons appliquer différentes méthodes à nos pour ensuite en retenir la meilleure.
-\section{Méthodes baséessur la réduction de dimension}
-Dans un contexte de classification, la régression logistique apparaît comme un premier choix. Cependant $n$ étant très petit devant $p$, nous pouvons donc pas l'appliquer directement. Notre idée consiste donc à d'abord réduire la dimension en effectuant une analyse en composantes principales. Ensuite nous appliquons la régression logistique en utilisant quelques composantes somme variables indépendantes. Cette technique s'inspire essentiellement de la régression en composantes principales (PCR).\vspace{2mm}\\
-Pour toute la suite, nous divisons notre jeu de données en un ensemble d'apprentissage et un ensemble test. En raison de notre faible nombre d'observations, notre ensemble de test ne contient que 94 observations.\vspace{2mm}
+Étudier ce problème de classification est mieux car d'une part le plus
+faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur
+au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans
+la classification par pays, nous avions 27 classes tandis qu'ici nous n'avons
+plus que 10. Des méthodes telles que la régression logistique se comporte mieux
+lorsque $K$ n'est pas très grand.\vspace{3mm}\\ La principale difficulté dans
+nos données provient du très grand nombre de variables explicatives. En effet
+nous sommes dans une situation où $n = 494$, le nombre d'observations est très
+petit par rapport au nombre de prédicteurs $p=5709$.\\
+Dans ce présent travail, nous allons appliquer différentes méthodes à nos pour
+ensuite en retenir la meilleure.
+
+\section{Méthodes basées sur la réduction de dimension}
+Dans un contexte de classification, la régression logistique apparaît comme un
+premier choix. Cependant $n$ étant très petit devant $p$, nous pouvons donc pas
+l'appliquer directement. Notre idée consiste donc à d'abord réduire la
+dimension en effectuant une analyse en composantes principales. Ensuite nous
+appliquons la régression logistique en utilisant quelques composantes somme
+variables indépendantes. Cette technique s'inspire essentiellement de la
+régression en composantes principales (PCR).\vspace{2mm}\\ 
+Pour toute la suite, nous divisons notre jeu de données en un ensemble
+d'apprentissage et un ensemble test. En raison de notre faible nombre
+d'observations, notre ensemble de test ne contient que 94
+observations.\vspace{2mm}
+
 \begin{lstlisting}
-		# lecture du jeu de données
+	# lecture du jeu de données
 	NAm2 = read.table("NAm2.txt", header = T)
 	# séparation des données
 	set.seed(12345)
 	train = sample(1:nrow(NAm2), 400)
 \end{lstlisting}
+
 \subsection{Analyse en composantes principales}
-Nous effectuons une analyse en composantes principales sur les 5709 variables explicatives. Les variables génétiques étant binaires, il n'est pas nécessaire ici qu'elles soient réduites. Le code ci-contre permet d'effectuer l'analyse.
+Nous effectuons une analyse en composantes principales sur les 5709 variables
+explicatives. Les variables génétiques étant binaires, il n'est pas nécessaire
+ici qu'elles soient réduites. Le code ci-contre permet d'effectuer l'analyse.
 \begin{lstlisting}
 	pca = prcomp(NAm2[train,-c(1:8)])
 	pvar = ((pca$sdev/sum(pca$sdev))**2)*100
@@ -188,11 +239,48 @@ Nous effectuons une analyse en composantes principales sur les 5709 variables ex
 		\label{fig:acp_plot}
 	\end{center}
 \end{figure}
-Nous obtenons 400 composantes principales. La figure \ref{fig:acp_plot} représente le pourcentage de variance expliquée pour chaque composante à gauche et le pourcentage cumulé à droite. On peut noter que les 100 premières composantes expliquent environ 49\% de la variance et les 200 premières un peu moins de 75.
-Maintenant que nous avons les composantes principales, nous pouvons effectuer la régression logistique.
+Nous obtenons 400 composantes principales. La figure \ref{fig:acp_plot}
+représente le pourcentage de variance expliquée pour chaque composante à gauche
+et le pourcentage cumulé à droite. On peut noter que les 100 premières
+composantes expliquent environ 49\% de la variance et les 200 premières un peu
+moins de 75.  L'ACP est intéressante car elle a un aspect 'visuel', on peut projeter
+par exemple les données sur deux composantes principales et afficher les données dans 
+le plan. On prend par exemple les composantes 3 et 6 qui ont un beau rendu. Effectivement
+sur la figure \ref{fig:acp_pc36}, on voit deux voire trois groupes se dégager, les Surui, les
+Pima et les Arhuaco. Cela confirme l'intérêt de se baser sur les composantes principales pour nos
+données.
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.7]{figures/pc36.pdf}
+		\caption{Projection des données sur les composantes principales 3 et 6}
+		\label{fig:acp_pc36}
+	\end{center}
+\end{figure}
+
+Voici le code utilisé pour générer la figure
+\begin{lstlisting}
+	comps=c(3,6)
+	plot(pca$x[,comps],col="white")
+	for (i in 1:length(names)) {
+		print(names[i])
+		lines(pca$x[which(NAm2[,3]==names[i]),comps],type="p",col=colPalette[i],pch=pch[i])
+	}
+	legend("bottomright",legend=names,col=colPalette,lty=-1,pch=pch,cex=.75,ncol=3,lwd=2, bg="white")
+\end{lstlisting}
+
+Maintenant que nous avons les composantes principales, nous
+pouvons effectuer la régression logistique.
+
 \subsection{Régression logistique} 
-Pour effectuer la régression logistique, nous devons d'abord choisir le nombre de composantes principales. Nous pourrions appliquer la méthode du \og coude \fg pour choisir le nombre de composantes optimal mais nous préférons utiliser la validation croisée. En effet, nous allons considérer des nombres différents de composantes et calculer le taux d'erreur en utilisant un \og 10-folds\fg. Nous choisissons alors le nombre de composantes pour lequel ce taux d'erreur sera minimal.\\
+Pour effectuer la régression logistique, nous devons d'abord choisir le nombre
+de composantes principales. Nous pourrions appliquer la méthode du \og coude
+\fg pour choisir le nombre de composantes optimal mais nous préférons utiliser
+la validation croisée. En effet, nous allons considérer des nombres différents
+de composantes et calculer le taux d'erreur en utilisant un \og 10-folds\fg.
+Nous choisissons alors le nombre de composantes pour lequel ce taux d'erreur
+sera minimal.\\
 Notons que pour faire la régression logistique nous utilisons la fonction \textbf{multiom()} du package \textbf{nnet}.\vspace{2mm}
+
 \begin{lstlisting}
 	# La fonction cv_error calcule le taux d'erreur par validation croisée pour un 
 	# nombre de composantes donné

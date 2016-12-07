@@ -13,6 +13,7 @@
 \usepackage[french]{babel}
 \usepackage{enumitem}
 \usepackage{tabularx,ragged2e,booktabs,caption}
+
 \usepackage{listings} 
 \xdefinecolor{gray}{rgb}{0.4,0.4,0.4} 
 \xdefinecolor{blue}{RGB}{58,95,205}% R's royalblue3; #3A5FCD 
@@ -60,8 +61,6 @@
 \def\beps{\boldsymbol \epsilon}
 
 
-
-
 % cei d\'efinit des fontes
 \theoremheaderfont{\normalfont\bfseries}
 \theorembodyfont{\normalfont}
@@ -105,6 +104,7 @@
 %\textsc{MTH6312: M\'ethodes Statistiques D'Apprentissage}\\[0.5cm]
 \today % la date du jour
 \end{center}
+\tableofcontents
 \end{titlepage}
 %%%% La page titre se termine ici
 \section{Présentation des données}
@@ -165,7 +165,7 @@ Pour palier à ce problème, nous décidons alors d'effectuer la classification 
 Étudier ce problème de classification est meilleure car d'une part le plus faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la classification par pays, nous avions 27 classes tandis qu'ici nous n'avons plus que 10. Des méthodes telles que la régression logistique se comporte mieux lorsque $K$ n'est pas très grand.\vspace{3mm}\\
 La principale difficulté dans nos données provient du très grand nombre de variables explicatives. En effet nous sommes dans une situation où $n = 494$, le nombre d'observations est très petit par rapport au nombre de prédicteurs $p=5709$.\\
 Dans ce présent travail, nous allons appliquer différentes méthodes à nos pour ensuite en retenir la meilleure.
-\section{Méthodes baséessur la réduction de dimension}
+\section{Méthodes basées sur la réduction de dimension}
 Dans un contexte de classification, la régression logistique apparaît comme un premier choix. Cependant $n$ étant très petit devant $p$, nous pouvons donc pas l'appliquer directement. Notre idée consiste donc à d'abord réduire la dimension en effectuant une analyse en composantes principales. Ensuite nous appliquons la régression logistique en utilisant quelques composantes somme variables indépendantes. Cette technique s'inspire essentiellement de la régression en composantes principales (PCR).\vspace{2mm}\\
 Pour toute la suite, nous divisons notre jeu de données en un ensemble d'apprentissage et un ensemble test. En raison de notre faible nombre d'observations, notre ensemble de test ne contient que 94 observations.\vspace{2mm}
 \begin{lstlisting}
@@ -277,7 +277,7 @@ Nous trouvons un taux d'erreur égale \[Err_{ACP}^{log} = 0.106\] soit 10 person
 	## Paraguay   0      0     0        0         0         0      0      0        4       0
 	## Peru       1      0     1        2         0         0      0      0        0       1
 \end{lstlisting}
-\subsection{Analyse discriminate linéaire}
+\subsection{Analyse discriminante linéaire}
 Un autre classificateur très populaire est celui de l'analyse discriminante linéaire. Une hypothèse de normalité au sein des variables explicatives est tout à fait plausible dans ce contexte. Nous avons d'abord essayer d'appliquer la méthode directement sur les données mais celle-ci a échoué. En effet même si théoriquement elle peut marcher sur ces données, l'inversion de la matrice de covariance $\Sigma$ est très instable numériquement.\\
 Nous avons donc décider comme pour la régression logistique d'appliquer l'analyse sur les données composantes principales. Ici aussi un choix du nombre de composantes est faits par validation croisée. Le code R ci-contre permet d'effectuer cette sélection.\vspace{2mm}
 \begin{lstlisting}

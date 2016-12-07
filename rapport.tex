@@ -131,6 +131,15 @@
 	$ L1.152               : int  0 0 0 0 0 0 0 0 0 0 ...
 	$ L1.155               : int  0 0 0 0 0 0 1 0 1 1 ...
 \end{lstlisting}
+Voici la répartition des populations sur le continent américain. On voit que 
+certains peuples sont proches en termes de position géographique.
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.8]{figures/map.pdf}
+		\caption{Répartition des populations autochtones sur le continent américain}
+		\label{fig:map}
+	\end{center}
+\end{figure}
 Notre but est de construire un classificateur permettant d'associer un individu à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement certaines populations présentent des effectifs très faibles. Par exemple, nous ne disposons que de 7 individus de la population \textit{Kaingang} et de 10 individus pour la population \textit{Guarani}. Effectuer une classification avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
 \begin{lstlisting}
 	table(NAm2$Pop)
@@ -536,6 +545,7 @@ Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que 
 	\end{tabular}
 	\label{tab:resume}
 \end{center}
+\section{Conclusion}
 La régression logistique avec une régularisation Ridge est clairement la meilleure. En effet elle donne le taux d'erreur le plus faible. Elle se trompe sur 5 individus dont 4 appartiennent à la classe \textit{Péru} qui n'avait que 10 individus dans l'ensemble d'apprentissage. Il est tout à fait raisonnable de dire qu'avec plus d'effectifs dans cette classe, nous obtiendrons un meilleur taux d'erreur.\vspace{3mm}\\
 Les données semblent linéairement séparables puisque l'analyse discriminante et la régression logistique sont les méthodes qui donnent les meilleurs résultats.\\
 Les méthodes basées sur les arbres de décision marchent très mal ici car il n'est pas possible de construire des arbres suffisamment grand.On pourrait également essayer d'utiliser les composantes principales pour construire les arbres. Un test rapide a effectivement indiqué une légère baisse du taux d'erreur. Mais vu que la régression logistique avec Ridge marche plutôt bien, nous ne nous sommes pas attardés sur cette technique.\vspace{3mm}\\

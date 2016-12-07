@@ -7,13 +7,13 @@ train = sample(1:nrow(NAm2), 400)
 
 #composantes principales
 pca = prcomp(NAm2[train,-c(1:8)])
-pvar = pca$sdev/sum(pca$sdev)*100
+pvar = (pca$sdev**2/sum(pca$sdev**2))*100
 screeplot(pca)
 par(mfrow=c(1,2))
-plot(1:length(pvar), pvar, type="l", lwd=1.5, col="blue", xlab="composantes",
-     ylab="pourcentage de variance expliquée")
+plot(1:length(pvar), pvar, type="p", col="blue", xlab="composantes",
+     ylab="pourcentage de variance expliquée", cex=0.5)
 plot(1:length(pvar), cumsum(pvar), type="l", lwd=1.5, col="blue", xlab="composantes",
-     ylab="pourcentage de variance expliquée cumulée")
+     ylab="pourcentage de variance cumulée")
 par(mfrow=c(1,1))
 
 
@@ -42,7 +42,6 @@ cv_error <- function(idx, ncomp, method) {
 
 ncomp = unique(c(seq(20,100,5), seq(100, 400, 20)))
 miscl = numeric(length(ncomp))
-
 set.seed(12345)
 idx = sample(1:400)
 j = 1
@@ -51,10 +50,11 @@ for (i in ncomp) {
   miscl[j] = cv_error(idx, i, "logistic")
   j = j+1
 }
-plot(ncomp, miscl, type='o', cex=0.6, col="blue")
+plot(ncomp, miscl, type='o', cex=0.6, col="blue", ylab = "taux erreur",
+     xlab="nombre de composantes")
 ncomp_opt = ncomp[which.min(miscl)]
 gen_log = data.frame(Country=NAm2$Country[train], pca$x[,1:ncomp_opt])
-fit.log = multinom(Country~., data=gen_log, MaxNWts=20000)
+fit.log = multinom(Country~., data=gen_log, MaxNWts=20000, trace=F)
 #prédiction sur l'ensemble de test
 test_data = scale(NAm2[-train,-c(1:8)], pca$center, pca$scale) %*% pca$rotation
 test.log = as.data.frame(test_data[,1:ncomp_opt])
@@ -65,16 +65,19 @@ table(NAm2$Country[-train], preds.log)
 
 #LDA
 require(MASS)
-ncomp_lda = unique(c(seq(20,100,5), seq(100, 340, 20)))
+#ncomp_lda = unique(c(seq(20,100,5), seq(100, 340, 20)))
+ncomp_lda = seq(20,340,5)
 misc = numeric(length(ncomp_lda))
+set.seed(12345)
 j=1
 for (i in ncomp_lda) {
-  cat(j,"/", 29, "\n")
+  cat(j,"/", 65, "\n")
   misc[j] = cv_error(idx, i, "lda")
   j = j+1
 }
-plot(ncomp_lda, misc, type='o', cex=0.6, col="blue")
-nopt_lda = ncomp[which.min(misc)]
+plot(ncomp_lda, misc, type='o', cex=0.6, col="blue", ylab = "taux erreur",
+     xlab="nombre de composantes")
+nopt_lda = ncomp_lda[which.min(misc)]
 gen_lda = data.frame(Country=NAm2$Country[train], pca$x[,1:nopt_lda])
 fit.lda = lda(Country~.,data=gen_lda)
 test.lda = as.data.frame(test_data[,1:nopt_lda])
@@ -112,15 +115,18 @@ table(NAm2$Country[-train], preds.knn)
 require(glmnet)
 x = model.matrix(Country~., data=NAm2[train, -c(1:3,5:8)])[,-1]
 rownames(x) = NULL
+set.seed(12345)
 ptm <- proc.time()
-fit.log_ridge = glmnet(x=x, y=NAm2$Country[train], alpha = 0, family="multinomial")
+fit.log_ridge = glmnet(x=x, y=NAm2$Country[train], alpha = 0, family="multinomial",
+                       type.multinomial = "grouped")
 proc.time() - ptm
 plot(fit.log_ridge, xvar = "lambda")
 
 grid = 10^seq (-2,-4, length =25)
+set.seed(12345)
 ptm <- proc.time()
 cv.ridge = cv.glmnet(x=x, y=NAm2$Country[train], alpha=0, family="multinomial",
-                     type.measure = "class", lambda = grid)
+                     type.measure = "class", type.multinomial = "grouped", lambda = grid)
 proc.time() - ptm
 plot(cv.ridge$lambda, cv.ridge$cvm, type='l', xlab=expression(lambda),
      ylab = "taux erreur ", lwd = 1.5, col="darkblue")

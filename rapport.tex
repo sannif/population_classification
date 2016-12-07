@@ -292,11 +292,11 @@ Nous avons donc décider comme pour la régression logistique d'appliquer l'anal
 \end{lstlisting}
 
 \begin{figure}[h!]
-\begin{center}
-	\includegraphics[scale=0.5]{figures/nopt_lda.pdf}
-	\caption{Taux d'erreur en fonction du nombre de composantes pour l'analyse discriminante linéaire}
-	\label{fig:nopt_lda}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.5]{figures/nopt_lda.pdf}
+		\caption{Taux d'erreur en fonction du nombre de composantes pour l'analyse discriminante linéaire}
+		\label{fig:nopt_lda}
+	\end{center}
 \end{figure}
 La figure \ref{fig:nopt_lda} représente le taux d'erreur en fonction du nombre de composantes. Ce taux est minimal pour 135 composantes. On sélectionne environ deux fois plus de composantes avec cette méthode. Ce qui montre que le nombre de composantes à choisir est propre à chaque méthode. Nous calculons donc le taux d'erreur test avec 135 composantes.\vspace{2mm}
 \begin{lstlisting}
@@ -312,11 +312,137 @@ La figure \ref{fig:nopt_lda} représente le taux d'erreur en fonction du nombre 
 On obtient un taux d'erreur \[Err_{ACP}^{LDA} = 0.096\]
 L'analyse linéaire discriminante classe correctement un individu de plus que la régression logistique. En effet elle classe correctement un individu de \textit{Mexico}. Les deux méthodes classent mal deux habitants de \textit{Brazil} mais se trompent différemment pour l'un des deux. Le reste est identique. \vspace{4mm}\\
 Nous avons essayé d'appliquer l'analyse discriminante quadratique en suivant le même schéma mais celle-ci a échoué car une classe ne contenait pas assez d'effectifs.
+
 \section{Régression logistique régularisée}
 Une façon de contourner le problème de dimension ($n\ll p$) consiste à utiliser des méthodes de régularisation qui consistent essentiellement à ajouter une pénalité dans la fonction objectif que nous cherchons à minimiser (ou maximiser) dans nos algorithmes. Ainsi dans cette partie, nous utilisons toujours la régression logistique mais en appliquant une régularisation. Nous considérons les régularisations Lasso et Ridge.
 \subsection{Régularisation Ridge}
 Comme dans le cas de la régression linéaire, nous utilisons le package \textbf{glmnet}. Nous choisissons la valeur optimale de $\lambda$ par validation croisée.
 \begin{lstlisting}
-	
+	require(glmnet)
+	x = model.matrix(Country~., data=NAm2[train, -c(1:3,5:8)])[,-1]
+	set.seed(12345)
+	fit.log_ridge = glmnet(x=x, y=NAm2$Country[train], alpha = 0, family="multinomial")
+	plot(fit.log_ridge, xvar = "lambda")
 \end{lstlisting}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{figures/coef_ridge.pdf}
+		\caption{Évolution des coefficients de la régression logistique pour la classe \textbf{Paraguay} en fonction du $\log(\lambda)$}
+		\label{fig:r_lambda}
+	\end{center}
+\end{figure}
+La figure \ref{fig:r_lambda} représente l'évolution des coefficients de la régression logistique pour la classe \textbf{Paraguay} en fonction du logarithme de $\lambda$. On voit bien l'effet du rétrécissement des coefficients.\\
+Le graphique de gauche sur la figure \ref{fig:r_lopt} montre l'évolution du taux d'erreur en fonction de $\lambda$. Ce graphique suggère que la valeur optimale $\lambda$ se trouve dans les faibles valeurs. Nous changeons alors notre grille de recherche et obtenons le graphique de droite sur la figure \ref{fig:r_lopt}. Plusieurs valeurs donnent un taux d'erreur minimal (figure \ref{fig:zoom_r} ); on choisit alors $\lambda^* = 0.001$.\vspace{2mm}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.7]{figures/r_lopt.pdf}
+		\caption{Taux d'erreur en fonction de $\lambda$ pour la régression Ridge.}
+		\label{fig:r_lopt}
+	\end{center}
+\end{figure}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{figures/zoom_r_lopt.pdf}
+		\caption{Zoom sur les petites valeurs du graphique de droite de la figure \ref{fig:r_lopt}}
+		\label{fig:zoom_r}
+	\end{center}
+\end{figure}
+\begin{lstlisting}
+	set.seed(12345)
+	cv.ridge = cv.glmnet(x=x, y=NAm2$Country[train], alpha=0, family="multinomial",
+							type.measure = "class")
+	par(mfrow=c(1,2))
+	plot(cv.ridge$lambda, cv.ridge$cvm, type='l', xlab=expression(lambda),
+			ylab = "taux erreur ", lwd = 1.5, col="darkblue")
+	# on ajuste la grille de recherche		
+	grid = 10^seq (0, -3, length =20)
+	set.seed(12345)
+	cv.ridge = cv.glmnet(x=x, y=NAm2$Country[train], alpha=0, family="multinomial",
+										type.measure = "class", lambda = grid)
+	plot(cv.ridge$lambda, cv.ridge$cvm, type='l', xlab=expression(lambda),
+				ylab = "taux erreur ", lwd = 1.5, col="darkblue")
+	par(mfrow=c(1,1))
+\end{lstlisting}
+On calcule maintenant le taux d'erreur sur l'ensemble test. \vspace{2mm}
+\begin{lstlisting}
+	newx = model.matrix(Country~., data=NAm2[-train, -c(1:3,5:8)])[,-1]
+	preds.ridge = predict.cv.glmnet(cv.ridge, newx=newx, s=0.001, type = "class")
+	mean(NAm2$Country[-train] != preds.ridge)
+	## [1] 0.05319149
+\end{lstlisting}
+On obtient un taux d'erreur plus petit que celui des deux méthodes précédentes.\vspace{-3mm} \[Err_{Ridge}^{log} = 0.053\]
+Nous classons correctement 89 individus sur 94. Un des deux brésiliens a été bien classé. Aussi un seul péruvien sur cinq est correctement classé. On notera que ce classificateur ne se trompe pas de la même manière que les deux autres sur les péruviens.
+\begin{lstlisting}
+	table(NAm2$Country[-train], preds.ridge)
+	## 			Brazil Canada Chile Colombia CostaRica Guatemala Mexico Panama Paraguay Peru
+	## Brazil    10      0     0        1         0         0      0      0        0        0
+	## Canada     0     15     0        0         0         0      0      0        0        0
+	## Chile      0      0     7        0         0         0      0      0        0        0
+	## Colombia   0      0     0       23         0         0      0      0        0        0
+	## CostaRica  0      0     0        0         3         0      0      0        0        0
+	## Guatemala  0      0     0        0         0         1      0      0        0        0
+	## Mexico     0      0     0        0         0         0     23      0        0        0
+	## Panama     0      0     0        0         0         0      0      2        0        0
+	## Paraguay   0      0     0        0         0         0      0      0        4        0
+	## Peru       0      1     0        3         0         0      0      0        0        1
+\end{lstlisting}
+\subsection{Régularisation Lasso}
+Le code R ci-contre permet d'effectuer l'ajustement.
+\begin{lstlisting}
+	set.seed(12345)
+	cv.lasso = cv.glmnet(x=x, y=NAm2$Country[train], family="multinomial",
+	                     type.measure = "class")
+	par(mfrow=c(1,2))
+	plot(cv.lasso$lambda, cv.lasso$cvm, type='l', xlab=expression(lambda),
+	     ylab = "taux erreur ", lwd = 1.5, col="darkblue")
+	plot(cv.lasso$lambda[cv.lasso$cvm<0.3], cv.lasso$cvm[cv.lasso$cvm<0.3], type='l', xlab=expression(lambda),
+	     ylab = "taux erreur ", lwd = 1.5, col="darkblue")
+	par(mfrow=c(1,2))
+\end{lstlisting}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.7]{figures/l_opt.pdf}
+		\caption{Taux d'erreur en fonction de $\lambda$ pour la régression Lasso ; la figure de  droite fait un zoom sur les petites valeurs}
+		\label{fig:l_opt}
+	\end{center}
+\end{figure}
+La figure \ref{fig:l_lopt} représente l'évolution du taux d'erreur en fonction de $\lambda$. Le graphique de droite fait un zoom sur les petites valeurs. Ici aussi on voit qu'une petite valeur de $\lambda$ est optimale. On choisit donc $\lambda_{lasso}^* = 0.002$.\\
+Nous calculons le taux d'erreur sur l'ensemble de test.
+\begin{lstlisting}
+	preds.lasso = predict.cv.glmnet(cv.lasso, newx=newx, s=0.002, type = "class")
+	mean(NAm2$Country[-train] != preds.lasso)
+	## [1] 0.1382979
+\end{lstlisting}
+Nous obtenons un taux d'erreur plus élevé que toutes celui des trois méthodes précédentes. En effet nous ne classons correctement que 81 individus. On peut remarquer aucun individu de\textit{Panama} n'a été prédit. Par contre cette méthode fait mieux que les précédentes sur les individus de \textit{Péru} puisqu'elle en classe correctement 2.
+\section{Méthodes non paramétriques}
+\subsection{K plus proches voisins}
+Une autre méthode populaire de classification est la méthode des plus proches voisins. Aussi les méthodes utilisées précédemment supposent que nos données sont linéairement séparables. La méthode KNN quant à elle peut produire un classificateur non linéaire.\vspace{3mm}\\
+Ici une réduction des données n'est pas nécessaire. Nous utilisons directement nos données. Nous choisissons le $K$ optimal par validation croisée. Nous faisons varier $K$ de 2 à 30. Le code R ci-contre permet d'effectuer cette sélection.\vspace{2mm}
+\begin{lstlisting}
+	require(class)
+	nfolds = 40
+	K = 2:30
+	err = numeric(length(K))
+	set.seed(12345)
+	for (i in K) {
+		tmp = 0
+		cat(i-1,"/",29, "\n")
+		for (k in 0:9) {
+			sub = (nfolds*k+1):(nfolds*(k+1))
+			fit = knn(train=NAm2[train[-sub], -(1:8)], test=NAm2[train[sub], -(1:8)],
+						cl=NAm2$Country[train[-sub]], k=i)
+			tmp = tmp + mean(NAm2$Country[train[sub]]!=fit)
+		}
+		err[i-1] = tmp/10
+	}
+	plot(K, err, type='o', col='blue', lwd=1.5, ylab="taux d'erreur")
+\end{lstlisting}
+Le taux d'erreur est minimal pour $K^* = 9$. Nous calculons maintenant le taux d'erreur sur l'ensemble test. \vspace{2mm}
+\begin{lstlisting}
+	preds.knn = knn(train=NAm2[train,-(1:8)], test = NAm2[-train, -(1:8)],
+	                cl=NAm2$Country[train], k=kopt)
+	mean(NAm2$Country[-train] != preds.knn)
+	## [1] 0.1489362
+\end{lstlisting}
+Elle classe un individu moins bien que la régression logistique avec Lasso. Elle aussi ne classe correctement qu'un seul de \textit{Péru}
 \end{document}

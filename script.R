@@ -103,7 +103,7 @@ for (i in K) {
   }
   err[i-1] = tmp/10
 }
-plot(K, err, type='o', col='blue', lwd=1.5)
+plot(K, err, type='o', col='blue', lwd=1.5, ylab="taux d'erreur")
 kopt = K[which.min(err)]
 preds.knn = knn(train=NAm2[train,-(1:8)], test = NAm2[-train, -(1:8)],
                 cl=NAm2$Country[train], k=kopt)
@@ -117,23 +117,23 @@ x = model.matrix(Country~., data=NAm2[train, -c(1:3,5:8)])[,-1]
 rownames(x) = NULL
 set.seed(12345)
 ptm <- proc.time()
-fit.log_ridge = glmnet(x=x, y=NAm2$Country[train], alpha = 0, family="multinomial",
-                       type.multinomial = "grouped")
+fit.log_ridge = glmnet(x=x, y=NAm2$Country[train], alpha = 0, family="multinomial")
 proc.time() - ptm
 plot(fit.log_ridge, xvar = "lambda")
 
-grid = 10^seq (-2,-4, length =25)
+grid = 10^seq (0, -3, length =20)
 set.seed(12345)
 ptm <- proc.time()
 cv.ridge = cv.glmnet(x=x, y=NAm2$Country[train], alpha=0, family="multinomial",
-                     type.measure = "class", type.multinomial = "grouped", lambda = grid)
+                     type.measure = "class", lambda = grid)
 proc.time() - ptm
 plot(cv.ridge$lambda, cv.ridge$cvm, type='l', xlab=expression(lambda),
      ylab = "taux erreur ", lwd = 1.5, col="darkblue")
+plot(cv.ridge$lambda[cv.ridge$cvm<0.15], cv.ridge$cvm[cv.ridge$cvm<0.15], type='l', xlab=expression(lambda),
+     ylab = "taux erreur ", lwd = 1.5, col="darkblue")
 lopt = cv.ridge$lambda.min
 newx = model.matrix(Country~., data=NAm2[-train, -c(1:3,5:8)])[,-1]
-rownames(newx) = NULL
-preds.ridge = predict.cv.glmnet(cv.ridge, newx=newx, s=lopt, type = "class")
+preds.ridge = predict.cv.glmnet(cv.ridge, newx=newx, s=0.001, type = "class")
 mean(NAm2$Country[-train] != preds.ridge)
 table(NAm2$Country[-train], preds.ridge)
 
@@ -144,15 +144,17 @@ proc.time() - ptm
 plot(fit.log_lasso, xvar = "lambda")
 
 ptm <- proc.time()
+set.seed(12345)
 cv.lasso = cv.glmnet(x=x, y=NAm2$Country[train], family="multinomial",
                      type.measure = "class")
 proc.time() - ptm
+par(mfrow=c(1,2))
 plot(cv.lasso$lambda, cv.lasso$cvm, type='l', xlab=expression(lambda),
      ylab = "taux erreur ", lwd = 1.5, col="darkblue")
-plot(cv.lasso$lambda[cv.lasso$cvm<0.3], cv.lasso$cvm[cv.lasso$cvm<0.3], type='l', xlab=expression(lambda),
+plot(cv.lasso$lambda[cv.lasso$cvm<0.27], cv.lasso$cvm[cv.lasso$cvm<0.27], type='l', xlab=expression(lambda),
      ylab = "taux erreur ", lwd = 1.5, col="darkblue")
 lopt.lasso = cv.lasso$lambda.min
-preds.lasso = predict.cv.glmnet(cv.lasso, newx=newx, s=lopt.lasso, type = "class")
+preds.lasso = predict.cv.glmnet(cv.lasso, newx=newx, s=0.002, type = "class")
 mean(NAm2$Country[-train] != preds.lasso)
 table(NAm2$Country[-train], preds.lasso)
 

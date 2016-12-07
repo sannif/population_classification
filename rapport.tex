@@ -148,7 +148,17 @@ certains peuples sont proches en termes de position géographique.
 		\label{fig:map}
 	\end{center}
 \end{figure}
-Notre but est de construire un classificateur permettant d'associer un individu à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement certaines populations présentent des effectifs très faibles. Par exemple, nous ne disposons que de 7 individus de la population \textit{Kaingang} et de 10 individus pour la population \textit{Guarani}. Effectuer une classification avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
+La question intéréssante que nous posons est est-ce qu'un groupe éthnique à des
+caractéristiques propres et distinctives des autres groupes. Pour cela on peut
+retourner le problème en essayant de prédire des quantités concernant les individus
+en se basant seulement sur leurs ADN. \\
+Notre but est donc de construire un classificateur permettant d'associer un individu
+à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement
+certaines populations présentent des effectifs très faibles. Par exemple, nous
+ne disposons que de 7 individus de la population \textit{Kaingang} et de 10
+individus pour la population \textit{Guarani}. Effectuer une classification
+avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
+
 \begin{lstlisting}
 	table(NAm2$Pop)
 	##
@@ -367,7 +377,13 @@ L'analyse linéaire discriminante classe correctement un individu de plus que la
 Nous avons essayé d'appliquer l'analyse discriminante quadratique en suivant le même schéma mais celle-ci a échoué car une classe ne contenait pas assez d'effectifs.
 
 \section{Régression logistique régularisée}
-Une façon de contourner le problème de dimension ($n\ll p$) consiste à utiliser des méthodes de régularisation qui consistent essentiellement à ajouter une pénalité dans la fonction objectif que nous cherchons à minimiser (ou maximiser) dans nos algorithmes. Ainsi dans cette partie, nous utilisons toujours la régression logistique mais en appliquant une régularisation. Nous considérons les régularisations Lasso et Ridge.
+Une façon de contourner le problème de dimension ($n\ll p$) consiste à utiliser
+des méthodes de régularisation qui consistent essentiellement à ajouter une
+pénalité dans la fonction objective que nous cherchons à minimiser (ou
+maximiser) dans nos algorithmes. Ainsi dans cette partie, nous utilisons
+toujours la régression logistique mais en appliquant une régularisation. Nous
+considérons les régularisations Lasso et Ridge.
+
 \subsection{Régularisation Ridge}
 Comme dans le cas de la régression linéaire, nous utilisons le package \textbf{glmnet}. Nous choisissons la valeur optimale de $\lambda$ par validation croisée.
 \begin{lstlisting}
@@ -384,8 +400,17 @@ Comme dans le cas de la régression linéaire, nous utilisons le package \textbf
 		\label{fig:r_lambda}
 	\end{center}
 \end{figure}
-La figure \ref{fig:r_lambda} représente l'évolution des coefficients de la régression logistique pour la classe \textbf{Paraguay} en fonction du logarithme de $\lambda$. On voit bien l'effet du rétrécissement des coefficients.\\
-Le graphique de gauche sur la figure \ref{fig:r_lopt} montre l'évolution du taux d'erreur en fonction de $\lambda$. Ce graphique suggère que la valeur optimale $\lambda$ se trouve dans les faibles valeurs. Nous changeons alors notre grille de recherche et obtenons le graphique de droite sur la figure \ref{fig:r_lopt}. Plusieurs valeurs donnent un taux d'erreur minimal (figure \ref{fig:zoom_r} ); on choisit alors $\lambda^* = 0.001$.\vspace{2mm}
+La figure \ref{fig:r_lambda} représente l'évolution des coefficients de la
+régression logistique pour la classe \textbf{Paraguay} en fonction du
+logarithme de $\lambda$. On voit bien l'effet du rétrécissement des
+coefficients.\\
+Le graphique de gauche sur la figure \ref{fig:r_lopt} montre l'évolution du
+taux d'erreur en fonction de $\lambda$. Ce graphique suggère que la valeur
+optimale $\lambda$ se trouve dans les faibles valeurs. Nous changeons alors
+notre grille de recherche et obtenons le graphique de droite sur la figure
+\ref{fig:r_lopt}. Plusieurs valeurs donnent un taux d'erreur minimal (figure
+\ref{fig:zoom_r} ); on choisit alors $\lambda^* = 0.001$.\vspace{2mm}
+
 \begin{figure}[h!]
 	\begin{center}
 		\includegraphics[scale=0.7]{figures/r_lopt.pdf}
@@ -459,18 +484,37 @@ Le code R ci-contre permet d'effectuer l'ajustement.
 		\label{fig:l_opt}
 	\end{center}
 \end{figure}
-La figure \ref{fig:l_lopt} représente l'évolution du taux d'erreur en fonction de $\lambda$. Le graphique de droite fait un zoom sur les petites valeurs. Ici aussi on voit qu'une petite valeur de $\lambda$ est optimale. On choisit donc $\lambda_{lasso}^* = 0.002$.\\
+La figure \ref{fig:l_opt} représente l'évolution du taux d'erreur en fonction
+de $\lambda$. Le graphique de droite fait un zoom sur les petites valeurs. Ici
+aussi on voit qu'une petite valeur de $\lambda$ est optimale. On choisit donc
+$\lambda_{lasso}^* = 0.002$.\\
 Nous calculons le taux d'erreur sur l'ensemble de test.
+
 \begin{lstlisting}
 	preds.lasso = predict.cv.glmnet(cv.lasso, newx=newx, s=0.002, type = "class")
 	mean(NAm2$Country[-train] != preds.lasso)
 	## [1] 0.1382979
 \end{lstlisting}
-Nous obtenons un taux d'erreur plus élevé que toutes celui des trois méthodes précédentes. En effet nous ne classons correctement que 81 individus. On peut remarquer aucun individu de\textit{Panama} n'a été prédit. Par contre cette méthode fait mieux que les précédentes sur les individus de \textit{Péru} puisqu'elle en classe correctement 2.
+Nous obtenons un taux d'erreur plus élevé que toutes celui des trois méthodes
+précédentes. En effet nous ne classons correctement que 81 individus. On peut
+remarquer aucun individu de\textit{Panama} n'a été prédit. Par contre cette
+méthode fait mieux que les précédentes sur les individus de \textit{Pérou}
+puisqu'elle en classe correctement 2.
+
 \section{Méthodes non paramétriques}
 \subsection{K plus proches voisins}
-Une autre méthode populaire de classification est la méthode des plus proches voisins. Aussi les méthodes utilisées précédemment supposent que nos données sont linéairement séparables. La méthode KNN quant à elle peut produire un classificateur non linéaire.\vspace{3mm}\\
-Ici une réduction des données n'est pas nécessaire. Nous utilisons directement nos données. Nous choisissons le $K$ optimal par validation croisée. Nous faisons varier $K$ de 2 à 30. Le code R ci-contre permet d'effectuer cette sélection.\vspace{2mm}
+Une autre méthode populaire de classification est la méthode des plus proches
+voisins. Cette méthode utilise le concept de distance. Cette méthode est
+pertinente car on voudrait que les individus ayant des ADN proches (en terme
+de la distance utilisée par KNN) soit de la même population ou du même pays. \\
+Aussi les méthodes utilisées précédemment supposent que nos données
+sont linéairement séparables. La méthode KNN quant à elle peut produire un
+classificateur non linéaire.\vspace{3mm}\\
+Ici une réduction des données n'est pas nécessaire. Nous utilisons directement
+nos données. Nous choisissons le $K$ optimal par validation croisée. Nous
+faisons varier $K$ de 2 à 30. Le code R ci-contre permet d'effectuer cette
+sélection.\vspace{2mm}
+
 \begin{lstlisting}
 	require(class)
 	nfolds = 40

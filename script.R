@@ -161,7 +161,8 @@ table(NAm2$Country[-train], preds.lasso)
 
 require(rpart)
 set.seed(12345)
-fit.tree = rpart(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, method ="class")
+fit.tree = rpart(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, method ="class",
+                 control = rpart.control(minsplit = 5, maxdepth = 30))
 plot(fit.tree)
 text(fit.tree, cex=.5, pretty = 0)
 preds.tree = predict(fit.tree, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
@@ -169,6 +170,8 @@ mean(NAm2$Country[-train] != preds.tree)
 table(NAm2$Country[-train], preds.tree)
 
 prun = prune(fit.tree, cp = fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+plot(prun)
+text(prun, cex=.5, pretty = 0)
 preds.prune = predict(prun, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
 mean(NAm2$Country[-train] != preds.prune)
 table(NAm2$Country[-train], preds.tree)
@@ -178,7 +181,28 @@ set.seed(12345)
 mtry = ncol(NAm2) - 8
 ptm <- proc.time()
 fit.bag = randomForest(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, mtry=mtry, importance=T)
-ptm <- proc.time()
+proc.time() - ptm
 preds.bag = predict(fit.bag, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
 mean(NAm2$Country[-train] != preds.bag)
 table(NAm2$Country[-train], preds.bag)
+
+# random forest
+set.seed(12345)
+ptm <- proc.time()
+fit.rand = randomForest(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, mtry=1000)
+proc.time() - ptm
+preds.rand = predict(fit.bag, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
+mean(NAm2$Country[-train] != preds.rand)
+
+
+gen = data.frame(Country=NAm2$Country[train], pca$x[,1:100])
+fit.t = rpart(Country~., data=gen, subset = train, method ="class",
+                 control = rpart.control(minsplit = 5, maxdepth = 30))
+
+plot(fit.t)
+text(fit.t)
+test_data = scale(NAm2[-train,-c(1:8)], pca$center, pca$scale) %*% pca$rotation
+test.t = as.data.frame(test_data[,1:100])
+preds.t = predict(fit.t, newdata = test.t, type = "class")
+mean(NAm2$Country[-train] != preds.t)
+table(NAm2$Country[-train], preds.t)

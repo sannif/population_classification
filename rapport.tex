@@ -241,7 +241,7 @@ Notons que pour faire la régression logistique nous utilisons la fonction \text
 	\end{center}
 \end{figure}
 La figure \ref{fig:nopt_log} représente le taux d'erreur en fonction du nombre de composantes. On voit que celui-ci diminue dans un premier temps mais commence à remonter assez tôt à partir de 100 composantes. Le minimum est atteint pour 75 composantes soit 40.89\% de variance expliquée. Naïvement, on aurait pu penser que prendre 300 composantes aurait été un meilleur choix puisqu'elles expliquent plus de 80\% de la variance.\vspace{3mm}\\
-Une fois le nombre de composantes principales déterminée, nous pouvons appliquer notre classificateur sur notre ensemble test. D'abord il faut que nous projetions les données de l'ensemble test sur les axes de l'ACP.
+Une fois le nombre de composantes principales déterminée, nous pouvons appliquer notre classificateur sur notre ensemble test. D'abord il faut que nous projetons les données de l'ensemble test sur les axes de l'ACP.
 \begin{lstlisting}
 	# projetcion des données test sur les axes de l ACP
 	test_data = scale(NAm2[-train,-c(1:8)], pca$center, pca$scale) %*% pca$rotation
@@ -256,7 +256,7 @@ Une fois le nombre de composantes principales déterminée, nous pouvons appliqu
 	mean(NAm2$Country[-train]!=preds.log)
 	## [1] 0.106383
 \end{lstlisting}
-Nous trouvons un taux d'erreur égale \[Err_{ACP}^{log} = 0.106\] soit 10 personnes mal classé sur 94. Quand on regarde plus en détails les erreurs, on voit qu'un seul individu de \textbf{Peru} a été bien classé sur les cinq présents. Aussi le seul guatémaltèque a été mal classé.
+Nous trouvons un taux d'erreur égale \[Err_{ACP}^{log} = 0.106\] soit 10 personnes mal classé sur 94. Quand on regarde plus en détails les erreurs, on voit qu'un seul individu de \textbf{Peru} a été bien classé sur les cinq présents. Aussi le seul guatémaltèque a été mal classé. On peut noter que l'ensemble d'apprentissage ne contenaient que 10 individus dans ces deux classes.
 \begin{lstlisting}
 	table(NAm2$Country[-train], preds.log)
 	## 			Brazil Canada Chile Colombia CostaRica Guatemala Mexico Panama Paraguay Peru
@@ -437,12 +437,110 @@ Ici une réduction des données n'est pas nécessaire. Nous utilisons directemen
 	}
 	plot(K, err, type='o', col='blue', lwd=1.5, ylab="taux d'erreur")
 \end{lstlisting}
-Le taux d'erreur est minimal pour $K^* = 9$. Nous calculons maintenant le taux d'erreur sur l'ensemble test. \vspace{2mm}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{figures/kopt.pdf}
+		\caption{Taux d'erreur en fonction de $K$.}
+		\label{fig:kopt}
+	\end{center}
+\end{figure}
+La figure \ref{fig:kopt} représente l'évolution du taux d'erreur en fonction de $K$. Le taux d'erreur est minimal pour $K^* = 9$. Nous calculons maintenant le taux d'erreur sur l'ensemble test. \vspace{2mm}
 \begin{lstlisting}
 	preds.knn = knn(train=NAm2[train,-(1:8)], test = NAm2[-train, -(1:8)],
 	                cl=NAm2$Country[train], k=kopt)
 	mean(NAm2$Country[-train] != preds.knn)
 	## [1] 0.1489362
 \end{lstlisting}
-Elle classe un individu moins bien que la régression logistique avec Lasso. Elle aussi ne classe correctement qu'un seul de \textit{Péru}
+Elle classe un individu moins bien que la régression logistique avec Lasso. Elle aussi ne classe correctement qu'un seul des cinq individus de \textit{Péru}.
+\subsection{Arbres de décision}
+La dernière classe de méthodes que nous considérons est celle basée sur les arbres de décision. Dans cette partie, nous appliquons un arbre de classification, du bagging et du random forests. Ces méthodes ne nécessitent pas une réduction de dimension ; elles s'appliquent directement aux données.
+\subsubsection{Arbre de classification}
+Le code ci-contre permet d'effectuer cet ajustement. Notons que nous utilisons le package \textbf{rpart} plutôt que le package \textbf{tree}. En effet ce dernier ne marchait pas sur les données.
+\begin{lstlisting}
+	require(rpart)
+	set.seed(12345)
+	fit.tree = rpart(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, method ="class",
+	                 control = rpart.control(minsplit = 5, maxdepth = 30))
+	plot(fit.tree)
+	text(fit.tree, cex=.5, pretty = 0)
+\end{lstlisting}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.8]{figures/tree.pdf}
+		\caption{Arbre de classification.}
+		\label{fig:tree}
+	\end{center}
+\end{figure}
+La figure \ref{fig:tree} représente l'arbre obtenu. On note que sur les 5709 variables disponibles seules 24 ont été utilisées pour construire l'arbre. Aussi on note que les classes \textit{Canada} et \textit{Mexico} sont identifiées très haut dans l'arbre.\\
+Nous obtenons un taux d'erreur sur l'ensemble de test très élevé : \hspace{5mm}$Err_{tree} = 0.489$. \vspace{2mm}
+\begin{lstlisting}
+	preds.tree = predict(fit.tree, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
+	mean(NAm2$Country[-train] != preds.tree)
+	table(NAm2$Country[-train], preds.tree)
+	## [1] 0.4893617
+\end{lstlisting}
+Une technique pour améliorer le modèle consiste à couper l'arbre plus tôt.\vspace{2mm}
+\begin{lstlisting}
+	prun = prune(fit.tree, cp = fit.tree$cptable[which.min(fit.tree$cptable[,"xerror"]),"CP"])
+	plot(prun)
+	text(prun, cex=.5, pretty = 0)
+\end{lstlisting}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.6]{figures/tree.pdf}
+		\caption{Arbre de classification obtenu après scindage.}
+		\label{fig:prune_tree}
+	\end{center}
+\end{figure}
+Comme on peut le voir sur la figure \ref{fig:prune_tree}, on obtient un arbre plus petit. Aussi seules 5 variables sont utilisées dans sa construction. On obtient un taux d'erreur pire que précédemment.\vspace{2mm}
+\begin{lstlisting}
+	preds.prune = predict(prun, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
+	mean(NAm2$Country[-train] != preds.prune)
+	## [1] 0.5212766
+\end{lstlisting}
+Il n'est pas étonnant que d'obtenir des taux moins bons. En fait, nous somme limités dans la taille de notre arbre d'une part par le package que nous utilisons et d'autre part par notre faible nombre d'observations. Ce qui entraîne qu'un faible nombre de variables soient utilisées dans la construction de l'arbre.
+\subsubsection{Bagging}
+Nous essayons maintenant avec la méthode \textit{bagging}.
+\begin{lstlisting}
+	require(randomForest)
+	set.seed(12345)
+	mtry = ncol(NAm2) - 8
+	fit.bag = randomForest(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, mtry=mtry, importance=T)
+	preds.bag = predict(fit.bag, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
+	mean(NAm2$Country[-train] != preds.bag)
+	## [1] 0.3191489
+\end{lstlisting}
+On note une amélioration par rapport à l'arbre de classification puisque le taux d'erreur descend à 0.32. Mais il demeure très élevé comparé à la régression logistique ou encore au KNN.
+\subsubsection{Random Forests}
+Enfin nous appliquons la méthode random forests. Elle est identique au bagging sauf que plutôt que de considérer toutes les variables à chaque coupe, on considère un sous-ensemble de $m$ variables. On teste d'abord le cas classique $m=\sqrt{p} = 75$.
+\begin{lstlisting}
+	set.seed(12345)
+	fit.rand = randomForest(Country~., data=NAm2[,-c(1:3,5:8)], subset = train, mtry=75)
+	preds.rand = predict(fit.bag, newdata = NAm2[-train,-c(1:3,5:8)], type = "class")
+	mean(NAm2$Country[-train] != preds.rand)
+	## [1] 0.3191489
+\end{lstlisting}
+Bizarrement on obtient le même taux d'erreur que le bagging. Nous avons testons d'autres valeurs pour $m$ et nous obtenons toujours le même taux d'erreur. Il apparaît donc qu'il s'agit du meilleur taux que l'on peut espérer avec cette méthode.
+\section{Conclusion}
+Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que les taux d'erreur.
+\begin{center}
+	\captionof{table}{Taux d'erreur des différentes méthodes}
+	\begin{tabular}{|c|c|}
+		\hline
+		Méthode & Taux d'erreur \\ \hline
+		ACP + logistique & 0.106 \\ \hline
+		ACP + LDA & 0.096 \\ \hline
+		Logistique + Ridge & 0.053 \\ \hline
+		Logistique + Lasso & 0.138 \\ \hline
+		KNN & 0.149 \\ \hline
+		Arbre de classification & 0.489 \\ \hline
+		Pruning & 0.52 \\ \hline
+		Random forest & 0.32 \\ \hline
+	\end{tabular}
+	\label{tab:resume}
+\end{center}
+La régression logistique avec une régularisation Ridge est clairement la meilleure. En effet elle donne le taux d'erreur le plus faible. Elle se trompe sur 5 individus dont 4 appartiennent à la classe \textit{Péru} qui n'avait que 10 individus dans l'ensemble d'apprentissage. Il est tout à fait raisonnable de dire qu'avec plus d'effectifs dans cette classe, nous obtiendrons un meilleur taux d'erreur.\vspace{3mm}\\
+Les données semblent linéairement séparables puisque l'analyse discriminante et la régression logistique sont les méthodes qui donnent les meilleurs résultats.\\
+Les méthodes basées sur les arbres de décision marchent très mal ici car il n'est pas possible de construire des arbres suffisamment grand.On pourrait également essayer d'utiliser les composantes principales pour construire les arbres. Un test rapide a effectivement indiqué une légère baisse du taux d'erreur. Mais vu que la régression logistique avec Ridge marche plutôt bien, nous ne nous sommes pas attardés sur cette technique.\vspace{3mm}\\
+En somme, nous voyons qu'il est possible en fonction des marqueurs génétiques d'associer un individu à une pays donné. Il est tout à fait raisonnable d'affirmer qu'avec un nombre d'observations plus importants, nous obtiendrons des résultats tout à fait similaires si nous choisissons d'effectuer la classification en fonction de la population plutôt que du pays.
 \end{document}

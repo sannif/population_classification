@@ -1,0 +1,322 @@
+\documentclass[12pt,a4paper]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ces packages peuvent être utiles
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath}
+\usepackage[amsmath]{ntheorem}
+\usepackage{lastpage}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[final]{pdfpages} 
+\usepackage[french]{babel}
+\usepackage{enumitem}
+\usepackage{tabularx,ragged2e,booktabs,caption}
+
+
+\usepackage{listings} 
+\xdefinecolor{gray}{rgb}{0.4,0.4,0.4} 
+\xdefinecolor{blue}{RGB}{58,95,205}% R's royalblue3; #3A5FCD 
+\definecolor{light-gray}{HTML}{FFDEAD}
+
+\lstset{% setup listings 
+	language=R,% set programming language 
+	basicstyle=\linespread{1.25}\footnotesize\ttfamily, % the size of the fonts that are used for the code
+	numberstyle=\tiny\color{blue},  % the style that is used for the line-numbers
+	stepnumber=1,                   % the step between two line-numbers. If it is 1, each line
+	% will be numbered
+	numbersep=5pt,                  % how far the line-numbers are from the code
+	backgroundcolor=\color{light-gray},  % choose the background color. You must add \usepackage{color}
+	showspaces=false,               % show spaces adding particular underscores
+	showstringspaces=false,         % underline spaces within strings
+	showtabs=false,                 % show tabs within strings adding particular underscores
+	rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+	tabsize=2,                      % sets default tabsize to 2 spaces
+	captionpos=b,                   % sets the caption-position to bottom
+	breaklines=true,                % sets automatic line breaking
+	breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+	keywordstyle=\color{Blue},      % keyword style
+	commentstyle=\color{OliveGreen},   % comment style
+	stringstyle=\color{ForestGreen},      % string literal style
+	extendedchars=false,
+	literate=%
+	{é}{{\`e}}1,
+	alsoletter={.<-\_ \$}, % becomes a letter 
+	columns=flexible,
+} 
+
+% celui-ci vous permet d'\'ecrire avec les accents en français 
+\usepackage[utf8]{inputenc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% write your abbreviation of symbols here
+
+% mettre votre pr\'enom et votre nom entre les deux accolades
+%\def\StudentName{Farooq Sanni, Antoine Delaite} 
+%mettre votre matricule entre les deux accolades (matricule de poly)
+%\def\StudentMatricule{1815085, 1815xxx}
+% quel num\'ero de devoir ? 
+\def\ExerciseNo{5}
+
+\def\bbeta{\boldsymbol \beta}
+\def\beps{\boldsymbol \epsilon}
+
+
+
+
+% cei d\'efinit des fontes
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont}
+\newtheorem{exercice}{Exercice}
+\newtheorem{solution}{Solution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% d\'efinir ce qu'il y a dans les marges 
+\usepackage{fancyhdr}
+\usepackage{fancyref}
+\pagestyle{fancy}
+\lhead{{\bf~Delaite A.,~Sanni F.}}
+\chead{}
+\rhead{\textsc{MTH6312 - Projet}}
+\lfoot{}
+\cfoot{\thepage~/~\pageref{LastPage}}
+\rfoot{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% la largeur et hauteur du texte et des marges
+\textwidth 6.5in
+\textheight 9in \oddsidemargin -0.3in \evensidemargin 0in \topmargin -0.4in
+\renewcommand{\baselinestretch}{2} 
+\addtolength{\headwidth}{2.5cm}
+%\addtolength{\headheight}{3.5 pt}
+
+\usepackage[left=2.5cm,right=2.5cm,top=3cm,bottom=2cm]{geometry}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% votre document commence ici
+
+
+\begin{document}
+%%%%% Generation de la premi\'ere page 
+\begin{titlepage}
+\begin{center}
+\textsc{\large MTH6312 - M\'ethodes statistiques d'apprentissage}\\[0.5cm]
+\vspace{2in}
+\textsc{\LARGE Projet de session}\\[1.5cm]
+\vspace{2in}
+\textsc{\Large Antoine Delaite~18150xx\\Farooq Sanni~1815085}\\[0.5cm]
+%\textsc{MTH6312: M\'ethodes Statistiques D'Apprentissage}\\[0.5cm]
+\today % la date du jour
+\end{center}
+\end{titlepage}
+%%%% La page titre se termine ici
+\section{Présentation des données}
+\noindent Dans ce projet, nous analysons la diversité génétique au sein des populations autochtones d'Amérique du Nord, d'Amérique centrale et d'Amérique latine. En effet nous disposons d'un jeu de données qui contient 5709 marqueurs génétiques relevés sur 494 individus appartenant à 27 populations autochtones d'Amérique. Nous disposons également d'information sur la localisation géographique de chaque population notamment la longitude, la latitude et le pays où se trouvait cette population. On notera que tous les individus du jeu de données sont de sexe masculin. On peut voir la structure des données ci-dessous.\vspace{2mm}
+\begin{lstlisting}
+	str(NAm2)
+	'data.frame':	494 obs. of  5717 variables:
+	$ IndivID              : int  2012 2156 2381 2382 2383 2384 2385 2387 2388 2389 ...
+	$ PopID                : int  811 811 811 811 811 811 811 811 811 811 ...
+	$ Pop                  : Factor w/ 27 levels "Ache","Arhuaco",..: 5 5 5 5 5 5 5 5 5 5 ...
+	$ Country              : Factor w/ 10 levels "Brazil","Canada",..: 2 2 2 2 2 2 2 2 2 2 ...
+	$ Continent            : Factor w/ 1 level "AMERICA": 1 1 1 1 1 1 1 1 1 1 ...
+	$ sex                  : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ lat                  : num  59.5 59.5 59.5 59.5 59.5 ...
+	$ long                 : num  -107 -107 -107 -107 -107 ...
+	$ L1.125               : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.130               : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.135               : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.140               : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.142               : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.145               : int  1 1 1 1 0 1 0 0 0 0 ...
+	$ L1.150               : int  0 0 0 0 0 0 0 1 0 0 ...
+	$ L1.150.940397350993  : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.152               : int  0 0 0 0 0 0 0 0 0 0 ...
+	$ L1.155               : int  0 0 0 0 0 0 1 0 1 1 ...
+\end{lstlisting}
+Notre but est de construire un classificateur permettant d'associer un individu à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement certaines populations présentent des effectifs très faibles. Par exemple, nous ne disposons que de 7 individus de la population \textit{Kaingang} et de 10 individus pour la population \textit{Guarani}. Effectuer une classification avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
+\begin{lstlisting}
+	table(NAm2$Pop)
+	##
+	## Ache     Arhuaco      Aymara     Cabecar   Chipewyan        Cree      Embera 
+	## 19          17          18          20          29          18          11 
+	## Guarani      Guaymi   Huilliche        Inga    Kaingang   Kaqchikel   Karitiana 
+	## 10          18          20          17           7          12          24 
+	## Kogi        Maya        Mixe      Mixtec      Ojibwa     Piapoco        Pima 
+	## 17          25          20          20          20          13          25 
+	## Quechua       Surui TicunaArara     Waunana       Wayuu     Zapotec 
+	## 20          21          17          20          17          19 
+\end{lstlisting}
+Pour palier à ce problème, nous décidons alors d'effectuer la classification par pays c'est à dire qu'un individu sera associé à un pays selon ses marqueurs génétiques. 
+\vspace{2mm}
+\begin{lstlisting}
+	table(NAm2$Country)
+	## Brazil    Canada     Chile  Colombia CostaRica Guatemala    Mexico    Panama 
+	## 62        67        38       129        20        12       109        18 
+	## Paraguay      Peru 
+	## 19        20 
+\end{lstlisting}
+Étudier ce problème de classification est meilleure car d'une part le plus faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la classification par pays, nous avions 27 classes tandis qu'ici nous n'avons plus que 10. Des méthodes telles que la régression logistique se comporte mieux lorsque $K$ n'est pas très grand.\vspace{3mm}\\
+La principale difficulté dans nos données provient du très grand nombre de variables explicatives. En effet nous sommes dans une situation où $n = 494$, le nombre d'observations est très petit par rapport au nombre de prédicteurs $p=5709$.\\
+Dans ce présent travail, nous allons appliquer différentes méthodes à nos pour ensuite en retenir la meilleure.
+\section{Méthodes baséessur la réduction de dimension}
+Dans un contexte de classification, la régression logistique apparaît comme un premier choix. Cependant $n$ étant très petit devant $p$, nous pouvons donc pas l'appliquer directement. Notre idée consiste donc à d'abord réduire la dimension en effectuant une analyse en composantes principales. Ensuite nous appliquons la régression logistique en utilisant quelques composantes somme variables indépendantes. Cette technique s'inspire essentiellement de la régression en composantes principales (PCR).\vspace{2mm}\\
+Pour toute la suite, nous divisons notre jeu de données en un ensemble d'apprentissage et un ensemble test. En raison de notre faible nombre d'observations, notre ensemble de test ne contient que 94 observations.\vspace{2mm}
+\begin{lstlisting}
+		# lecture du jeu de données
+	NAm2 = read.table("NAm2.txt", header = T)
+	# séparation des données
+	set.seed(12345)
+	train = sample(1:nrow(NAm2), 400)
+\end{lstlisting}
+\subsection{Analyse en composantes principales}
+Nous effectuons une analyse en composantes principales sur les 5709 variables explicatives. Les variables génétiques étant binaires, il n'est pas nécessaire ici qu'elles soient réduites. Le code ci-contre permet d'effectuer l'analyse.
+\begin{lstlisting}
+	pca = prcomp(NAm2[train,-c(1:8)])
+	pvar = ((pca$sdev/sum(pca$sdev))**2)*100
+	par(mfrow=c(1,2))
+	plot(1:length(pvar), pvar, type="p", col="blue", xlab="composantes",
+			ylab="pourcentage de variance expliquée", cex=0.5)
+	plot(1:length(pvar), cumsum(pvar), type="l", lwd=1.5, col="blue", xlab="composantes",
+			ylab="pourcentage de variance cumulée")
+	par(mfrow=c(1,1))
+\end{lstlisting}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.7]{figures/pca_plot.pdf}
+		\caption{Pourcentage de variance expliquée pour chaque composante à gauche et le pourcentage cumulé à droite}
+		\label{fig:acp_plot}
+	\end{center}
+\end{figure}
+Nous obtenons 400 composantes principales. La figure \ref{fig:acp_plot} représente le pourcentage de variance expliquée pour chaque composante à gauche et le pourcentage cumulé à droite. On peut noter que les 100 premières composantes expliquent environ 49\% de la variance et les 200 premières un peu moins de 75.
+Maintenant que nous avons les composantes principales, nous pouvons effectuer la régression logistique.
+\subsection{Régression logistique} 
+Pour effectuer la régression logistique, nous devons d'abord choisir le nombre de composantes principales. Nous pourrions appliquer la méthode du \og coude \fg pour choisir le nombre de composantes optimal mais nous préférons utiliser la validation croisée. En effet, nous allons considérer des nombres différents de composantes et calculer le taux d'erreur en utilisant un \og 10-folds\fg. Nous choisissons alors le nombre de composantes pour lequel ce taux d'erreur sera minimal.\\
+Notons que pour faire la régression logistique nous utilisons la fonction \textbf{multiom()} du package \textbf{nnet}.\vspace{2mm}
+\begin{lstlisting}
+	# La fonction cv_error calcule le taux d'erreur par validation croisée pour un 
+	# nombre de composantes donné
+	cv_error <- function(idx, ncomp, method) {
+		nfolds = 40
+		err = numeric(10)
+		for (k in 0:9) {
+			sub = idx[(nfolds*k+1):(nfolds*(k+1))]
+			gen = data.frame(Country=NAm2$Country[train], pca$x[,1:ncomp])
+			if(method == "logistic") {
+				fit = multinom(Country~., data=gen, MaxNWts=20000, subset=-sub, trace=F)
+				preds = predict(fit, newdata = gen[sub,], type="class")
+			} else if(method=="lda") {
+				fit = lda(Country~.,data=gen, subset=-sub)
+				preds = predict(fit, newdata = gen[sub,], type="response")$class
+			} else {
+				return("NA")
+			}
+				err[k+1] = mean(gen$Country[sub]!=preds)
+			}
+			mean(err)
+	}
+\end{lstlisting}
+\begin{lstlisting}
+	require(nnet)
+	ncomp = unique(c(seq(20,100,5), seq(100, 400, 20)))
+	miscl = numeric(length(ncomp))
+	set.seed(12345)
+	idx = sample(1:400)
+	j = 1
+	for (i in ncomp) {
+		cat(j,"/", 32, "\n")
+		miscl[j] = cv_error(idx, i, "logistic")
+		j = j+1
+	}
+	plot(ncomp, miscl, type='o', cex=0.6, col="blue", ylab = "taux erreur",
+			xlab="nombre de composantes")
+	ncomp_opt = ncomp[which.min(miscl)]
+	## [1] 75
+\end{lstlisting}
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.5]{figures/nopt_log.pdf}
+		\caption{Taux d'erreur en fonction du nombre de composantes pour la régression logistique}
+		\label{fig:nopt_log}
+	\end{center}
+\end{figure}
+La figure \ref{fig:nopt_log} représente le taux d'erreur en fonction du nombre de composantes. On voit que celui-ci diminue dans un premier temps mais commence à remonter assez tôt à partir de 100 composantes. Le minimum est atteint pour 75 composantes soit 40.89\% de variance expliquée. Naïvement, on aurait pu penser que prendre 300 composantes aurait été un meilleur choix puisqu'elles expliquent plus de 80\% de la variance.\vspace{3mm}\\
+Une fois le nombre de composantes principales déterminée, nous pouvons appliquer notre classificateur sur notre ensemble test. D'abord il faut que nous projetions les données de l'ensemble test sur les axes de l'ACP.
+\begin{lstlisting}
+	# projetcion des données test sur les axes de l ACP
+	test_data = scale(NAm2[-train,-c(1:8)], pca$center, pca$scale) %*% pca$rotation
+	test.log = as.data.frame(test_data[,1:ncomp_opt])
+	
+	# ajustemrnt du modèle
+	gen_log = data.frame(Country=NAm2$Country[train], pca$x[,1:ncomp_opt])
+	fit.log = multinom(Country~., data=gen_log, MaxNWts=20000, trace=F)
+	
+	# prediction des donnees
+	preds.log = predict(fit.log, newdata = test.log, type="class")
+	mean(NAm2$Country[-train]!=preds.log)
+	## [1] 0.106383
+\end{lstlisting}
+Nous trouvons un taux d'erreur égale \[Err_{ACP}^{log} = 0.106\] soit 10 personnes mal classé sur 94. Quand on regarde plus en détails les erreurs, on voit qu'un seul individu de \textbf{Peru} a été bien classé sur les cinq présents. Aussi le seul guatémaltèque a été mal classé.
+\begin{lstlisting}
+	table(NAm2$Country[-train], preds.log)
+	## 			Brazil Canada Chile Colombia CostaRica Guatemala Mexico Panama Paraguay Peru
+	## Brazil     9      0     0        1         0         0      1      0        0       0
+	## Canada     0     15     0        0         0         0      0      0        0       0
+	## Chile      0      0     7        0         0         0      0      0        0       0
+	## Colombia   0      1     0       21         0         0      1      0        0       0
+	## CostaRica  0      0     0        0         3         0      0      0        0       0
+	## Guatemala  0      0     0        1         0         0      0      0        0       0
+	## Mexico     0      0     0        1         0         0     22      0        0       0
+	## Panama     0      0     0        0         0         0      0      2        0       0
+	## Paraguay   0      0     0        0         0         0      0      0        4       0
+	## Peru       1      0     1        2         0         0      0      0        0       1
+\end{lstlisting}
+\subsection{Analyse discriminate linéaire}
+Un autre classificateur très populaire est celui de l'analyse discriminante linéaire. Une hypothèse de normalité au sein des variables explicatives est tout à fait plausible dans ce contexte. Nous avons d'abord essayer d'appliquer la méthode directement sur les données mais celle-ci a échoué. En effet même si théoriquement elle peut marcher sur ces données, l'inversion de la matrice de covariance $\Sigma$ est très instable numériquement.\\
+Nous avons donc décider comme pour la régression logistique d'appliquer l'analyse sur les données composantes principales. Ici aussi un choix du nombre de composantes est faits par validation croisée. Le code R ci-contre permet d'effectuer cette sélection.\vspace{2mm}
+\begin{lstlisting}
+	require(MASS)
+	ncomp_lda = seq(20,340,5)
+	misc = numeric(length(ncomp_lda))
+	set.seed(12345)
+	j=1
+	for (i in ncomp_lda) {
+		cat(j,"/", 65, "\n")
+		misc[j] = cv_error(idx, i, "lda")
+		j = j+1
+	}
+	plot(ncomp_lda, misc, type='o', cex=0.6, col="blue", ylab = "taux erreur",
+			xlab="nombre de composantes")
+	nopt_lda = ncomp_lda[which.min(misc)]
+	## [1] 135
+\end{lstlisting}
+
+\begin{figure}[h!]
+\begin{center}
+	\includegraphics[scale=0.5]{figures/nopt_lda.pdf}
+	\caption{Taux d'erreur en fonction du nombre de composantes pour l'analyse discriminante linéaire}
+	\label{fig:nopt_lda}
+\end{center}
+\end{figure}
+La figure \ref{fig:nopt_lda} représente le taux d'erreur en fonction du nombre de composantes. Ce taux est minimal pour 135 composantes. On sélectionne environ deux fois plus de composantes avec cette méthode. Ce qui montre que le nombre de composantes à choisir est propre à chaque méthode. Nous calculons donc le taux d'erreur test avec 135 composantes.\vspace{2mm}
+\begin{lstlisting}
+	# donnees pour la LDA
+	gen_lda = data.frame(Country=NAm2$Country[train], pca$x[,1:nopt_lda])
+	# ajustement
+	fit.lda = lda(Country~.,data=gen_lda)
+	test.lda = as.data.frame(test_data[,1:nopt_lda])
+	preds.lda = predict(fit.lda, newdata = test.lda, type="response")$class
+	mean(NAm2$Country[-train] != preds.lda)
+	## 0.09574468
+\end{lstlisting}
+On obtient un taux d'erreur \[Err_{ACP}^{LDA} = 0.096\]
+L'analyse linéaire discriminante classe correctement un individu de plus que la régression logistique. En effet elle classe correctement un individu de \textit{Mexico}. Les deux méthodes classent mal deux habitants de \textit{Brazil} mais se trompent différemment pour l'un des deux. Le reste est identique. \vspace{4mm}\\
+Nous avons essayé d'appliquer l'analyse discriminante quadratique en suivant le même schéma mais celle-ci a échoué car une classe ne contenait pas assez d'effectifs.
+\section{Régression logistique régularisée}
+Une façon de contourner le problème de dimension ($n\ll p$) consiste à utiliser des méthodes de régularisation qui consistent essentiellement à ajouter une pénalité dans la fonction objectif que nous cherchons à minimiser (ou maximiser) dans nos algorithmes. Ainsi dans cette partie, nous utilisons toujours la régression logistique mais en appliquant une régularisation. Nous considérons les régularisations Lasso et Ridge.
+\subsection{Régularisation Ridge}
+Comme dans le cas de la régression linéaire, nous utilisons le package \textbf{glmnet}. Nous choisissons la valeur optimale de $\lambda$ par validation croisée.
+\begin{lstlisting}
+	
+\end{lstlisting}
+\end{document}

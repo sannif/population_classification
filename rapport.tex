@@ -505,9 +505,9 @@ Nous calculons le taux d'erreur sur l'ensemble de test.
 Nous obtenons un taux d'erreur plus élevé que toutes celui des trois méthodes
 précédentes. En effet nous ne classons correctement que 81 individus. On peut
 remarquer qu'aucun individu de\textit{Panama} n'a été prédit alors qu'il y'en avait deux. Par contre cette
-méthode fait mieux que les précédentes sur les individus de \textit{Péru}
+méthode fait mieux que les précédentes sur les individus de \textit{Peru}
 puisqu'elle en classe correctement~2.\vspace{3mm}\\
-On pourrait donc penser à utiliser une régularisation de type \og elastic net \fg pour prendre en compte les deux pénalités Lasso et Ridge puisque Lasso semble mieux prédire les individus de \textit{Péru}. Cette technique n'a toutefois pas été testé dans ce projet.
+On pourrait donc penser à utiliser une régularisation de type \og elastic net \fg pour prendre en compte les deux pénalités Lasso et Ridge puisque Lasso semble mieux prédire les individus de \textit{Peru}. Cette technique n'a toutefois pas été testé dans ce projet.
 \section{Méthodes non paramétriques}
 \subsection{K plus proches voisins}
 Une autre méthode populaire de classification est la méthode des plus proches
@@ -554,7 +554,7 @@ La figure \ref{fig:kopt} représente l'évolution du taux d'erreur en fonction d
 	mean(NAm2$Country[-train] != preds.knn)
 	## [1] 0.1489362
 \end{lstlisting}
-Elle classe un individu moins bien que la régression logistique avec Lasso. Elle aussi ne classe correctement qu'un seul des cinq individus de \textit{Péru}.
+Elle classe un individu moins bien que la régression logistique avec Lasso. Elle aussi ne classe correctement qu'un seul des cinq individus de \textit{Peru}.
 \subsection{Arbres de décision}
 La dernière classe de méthodes que nous considérons est celle basée sur les arbres de décision. Dans cette partie, nous appliquons un arbre de classification, du bagging et du random forests. Ces méthodes ne nécessitent pas une réduction de dimension ; elles s'appliquent directement aux données.
 \subsubsection{Arbre de classification}
@@ -626,7 +626,7 @@ Enfin nous appliquons la méthode random forests. Elle est identique au bagging 
 Bizarrement on obtient le même taux d'erreur que le bagging. Nous avons testé
 d'autres valeurs pour $m$ et nous obtenons toujours le même taux d'erreur. Il
 apparaît donc qu'il s'agit du meilleur taux que l'on peut espérer avec cette
-méthode. \\
+méthode.\vspace{3mm}\\
 Cependant on se demande si le fait qu'il y ait trop de prédicteurs ne nuit pas
 à la méthode. C'est à dire que l'arbre pourrait atteindre un des critères d'arrêt
 alors qu'il ne considère qu'une faible partie des variables et que celles-ci ne
@@ -638,8 +638,7 @@ faut prendre les 40 premières composantes. L'erreur test ensuite obtenue par le
 modèle est de 0.180. C'est donc meilleur que de prendre toutes les données. A 
 part la justification précédente il faudra connaître un peu plus en détail le
 code utilisé par randomForest pour expliquer cette tendance. \\
-Voici le code utilisé pour obtenir le résultat:
-
+Voici le code utilisé pour obtenir le résultat:\vspace{2mm}
 \begin{lstlisting}
 #Recherche du meilleur nombre de composantes
 err.cv = numeric(40)
@@ -690,26 +689,22 @@ Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que 
 ~\\
 La régression logistique avec une régularisation Ridge est clairement la
 meilleure. En effet elle donne le taux d'erreur le plus faible. Elle se trompe
-sur 5 individus dont 4 appartiennent à la classe \textit{Péru} qui n'avait que
+sur 5 individus dont 4 appartiennent à la classe \textit{Peru} qui n'avait que
 10 individus dans l'ensemble d'apprentissage. Il est tout à fait raisonnable de
 dire qu'avec plus d'effectifs dans cette classe, nous obtiendrons un meilleur
 taux d'erreur.\vspace{3mm}\\
-
 Les données semblent linéairement séparables puisque l'analyse discriminante et
 la régression logistique sont les méthodes qui donnent les meilleurs
 résultats.\\
-
 Les méthodes basées sur les arbres de décision marchent assez mal ici car il
 n'est pas possible de construire des arbres suffisamment grand. On a
 également essayer d'utiliser les composantes principales pour construire les
 arbres. Le taux d'erreur diminue assez fortement mais pas assez cependant
-pour que cette méthode soit intéréssante. \\
-La régression logistique avec Ridge quant à elle a très bien marchée.
-\vspace{3mm}\\
+pour que cette méthode soit intéréssante.\vspace{3mm}\\
 
 En somme, nous voyons qu'il est possible en fonction des marqueurs génétiques
 d'associer un individu à un pays donné. Il est tout à fait raisonnable
-d'affirmer qu'avec un nombre d'observations plus importants, nous obtiendrons
+d'affirmer qu'avec un nombre d'observations plus important, nous obtiendrons
 des résultats tout à fait similaires si nous choisissons d'effectuer la
 classification en fonction de la population plutôt que du pays.
 

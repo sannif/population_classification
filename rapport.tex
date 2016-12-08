@@ -149,8 +149,10 @@ certains peuples sont proches en termes de position géographique.
 		\label{fig:map}
 	\end{center}
 \end{figure}
-La question intéressante que nous nous posons est la suivante : un groupe ethnique a t- il des caractéristiques propres et distinctives des autres groupes ? Pour cela on peut
-retourner le problème en essayant de prédire des quantités concernant les individus
+La question intéressante que nous nous posons est la suivante : un groupe
+ethnique a t-il des caractéristiques propres et distinctives des autres
+groupes ? Pour cela on peut retourner le problème en essayant de prédire des
+quantités concernant les individus
 en se basant seulement sur leurs ADN. \vspace{2mm}\\
 Notre but est donc de construire un classificateur permettant d'associer un individu
 à une population en fonction de ses 5709 marqueurs génétiques. Malheureusement
@@ -171,7 +173,9 @@ avec de si faibles effectifs ne seraient pas très pertinents.\vspace{2mm}
 	## Quechua       Surui TicunaArara     Waunana       Wayuu     Zapotec 
 	## 20          21          17          20          17          19 
 \end{lstlisting}
-Pour palier à ce problème, nous décidons alors d'effectuer la classification par pays c'est à dire qu'un individu sera associé à un pays selon ses marqueurs génétiques. 
+Pour palier ce problème, nous décidons alors d'effectuer la classification par
+pays c'est à dire qu'un individu sera associé à un pays selon ses marqueurs
+génétiques.  
 \vspace{2mm}
 \begin{lstlisting}
 	table(NAm2$Country)
@@ -180,7 +184,12 @@ Pour palier à ce problème, nous décidons alors d'effectuer la classification 
 	## Paraguay      Peru 
 	## 19             20 
 \end{lstlisting}
-Étudier ce problème de classification est meilleur car d'une part le plus faible effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la classification par pays, nous avions 27 classes tandis qu'ici nous n'en avons plus que 10. Des méthodes telles que la régression logistique se comporte mieux lorsque $K$ n'est pas très grand.\vspace{3mm}\\
+Étudier ce problème de classification est mieux car d'une part le plus faible
+effectif dans une classe est 12 ; ce qui est reste faible mais supérieur au cas
+précédent. D'autre part le nombre de classes $K$ diminue. En effet, dans la
+classification par pays, nous avions 27 classes tandis qu'ici nous n'en avons
+plus que 10. Des méthodes telles que la régression logistique se comporte mieux
+lorsque $K$ n'est pas très grand.\vspace{3mm}\\
 La principale difficulté dans nos données provient du très grand nombre de variables explicatives. En effet nous sommes dans une situation où le nombre d'observations $n = 494$ est très petit par rapport au nombre de prédicteurs $p=5709$.\\
 Dans ce présent travail, nous allons appliquer différentes méthodes à nos données pour ensuite en retenir la meilleure.
 \section{Méthodes basées sur la réduction de dimension}
@@ -614,7 +623,51 @@ Enfin nous appliquons la méthode random forests. Elle est identique au bagging 
 	mean(NAm2$Country[-train] != preds.rand)
 	## [1] 0.3191489
 \end{lstlisting}
-Bizarrement on obtient le même taux d'erreur que le bagging. Nous avons testé d'autres valeurs pour $m$ et nous obtenons toujours le même taux d'erreur. Il apparaît donc qu'il s'agit du meilleur taux que l'on peut espérer avec cette méthode.
+Bizarrement on obtient le même taux d'erreur que le bagging. Nous avons testé
+d'autres valeurs pour $m$ et nous obtenons toujours le même taux d'erreur. Il
+apparaît donc qu'il s'agit du meilleur taux que l'on peut espérer avec cette
+méthode. \\
+Cependant on se demande si le fait qu'il y ait trop de prédicteurs ne nuit pas
+à la méthode. C'est à dire que l'arbre pourrait atteindre un des critères d'arrêt
+alors qu'il ne considère qu'une faible partie des variables et que celles-ci ne
+sont pas assez complètes. \\
+Nous décidons de tester la méthode en utilisant les axes principaux obtenus avec 
+l'ACP afin de contruire l'arbre. Nous procédons une nouvelle fois par validation
+croisée afin de choisir le meilleur nombre de composantes. Nous trouvons qu'il 
+faut prendre les 40 premières composantes. L'erreur test ensuite obtenue par le
+modèle est de 0.180. C'est donc meilleur que de prendre toutes les données. A 
+part la justification précédente il faudra connaître un peu plus en détail le
+code utilisé par randomForest pour expliquer cette tendance. \\
+Voici le code utilisé pour obtenir le résultat:
+
+\begin{lstlisting}
+#Recherche du meilleur nombre de composantes
+err.cv = numeric(40)
+i=1
+for (numComp in seq(10, 400, 10)) {
+	print(i)
+	err = numeric(10)
+	for (k in 0:9) {
+		entr=c((1+k*40):((k+1)*40))
+		fit.bag = randomForest(Country~., data=NA.pca.train[-entr,1:(numComp+1)], 
+					mtry=round(sqrt(numComp)), importance=T)
+		preds.bag = predict(fit.bag, newdata = NA.pca.train[entr,1:(numComp+1)], 
+					type = "class")
+		err[k+1] = mean(NA.pca.train$Country[entr] != preds.bag)
+	}
+	err.cv[i]=mean(err)
+	i=i+1
+}
+#Calcul de l'erreur test
+fit.bag = randomForest(Country~., data=NA.pca.train[,1:41],
+			mtry=round(sqrt(40)), importance=T)
+test_data = scale(NAm2[-train,-c(1:8)], NA.comp$center, NA.comp$scale) %*% NA.comp$rotation
+test.log = as.data.frame(test_data[,1:40])
+preds.bag = predict(fit.bag, newdata = test.log, type = "class")
+mean(NA.pca.train$Country[] != preds.bag)
+\end{lstlisting}
+
+
 \section{Conclusion}
 Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que leur taux d'erreur. \vspace{-4mm}
 \begin{center}
@@ -630,12 +683,34 @@ Le tableau ci-contre récapitule les différentes méthodes essayées ainsi que 
 		Arbre de classification & 0.489 \\ \hline
 		Pruning & 0.52 \\ \hline
 		Random forest & 0.32 \\ \hline
+		ACP + Random forest & 0.180 \\ \hline
 	\end{tabular}
 	\label{tab:resume}
 \end{center}
 ~\\
-La régression logistique avec une régularisation Ridge est clairement la meilleure. En effet elle donne le taux d'erreur le plus faible. Elle se trompe sur 5 individus dont 4 appartiennent à la classe \textit{Péru} qui n'avait que 10 individus dans l'ensemble d'apprentissage. Il est tout à fait raisonnable de dire qu'avec plus d'effectifs dans cette classe, nous obtiendrons un meilleur taux d'erreur.\vspace{3mm}\\
-Les données semblent linéairement séparables puisque l'analyse discriminante et la régression logistique sont les méthodes qui donnent les meilleurs résultats.\\
-Les méthodes basées sur les arbres de décision marchent très mal ici car il n'est pas possible de construire des arbres suffisamment grand. On pourrait également essayer d'utiliser les composantes principales pour construire les arbres. Un test rapide a effectivement indiqué une légère baisse du taux d'erreur. Mais vu que la régression logistique avec Ridge marche plutôt bien, nous ne nous sommes pas attardés sur cette technique.\vspace{3mm}\\
-En somme, nous voyons qu'il est possible en fonction des marqueurs génétiques d'associer un individu à un pays donné. Il est tout à fait raisonnable d'affirmer qu'avec un nombre d'observations plus importants, nous obtiendrons des résultats tout à fait similaires si nous choisissons d'effectuer la classification en fonction de la population plutôt que du pays.
+La régression logistique avec une régularisation Ridge est clairement la
+meilleure. En effet elle donne le taux d'erreur le plus faible. Elle se trompe
+sur 5 individus dont 4 appartiennent à la classe \textit{Péru} qui n'avait que
+10 individus dans l'ensemble d'apprentissage. Il est tout à fait raisonnable de
+dire qu'avec plus d'effectifs dans cette classe, nous obtiendrons un meilleur
+taux d'erreur.\vspace{3mm}\\
+
+Les données semblent linéairement séparables puisque l'analyse discriminante et
+la régression logistique sont les méthodes qui donnent les meilleurs
+résultats.\\
+
+Les méthodes basées sur les arbres de décision marchent assez mal ici car il
+n'est pas possible de construire des arbres suffisamment grand. On a
+également essayer d'utiliser les composantes principales pour construire les
+arbres. Le taux d'erreur diminue assez fortement mais pas assez cependant
+pour que cette méthode soit intéréssante. \\
+La régression logistique avec Ridge quant à elle a très bien marchée.
+\vspace{3mm}\\
+
+En somme, nous voyons qu'il est possible en fonction des marqueurs génétiques
+d'associer un individu à un pays donné. Il est tout à fait raisonnable
+d'affirmer qu'avec un nombre d'observations plus importants, nous obtiendrons
+des résultats tout à fait similaires si nous choisissons d'effectuer la
+classification en fonction de la population plutôt que du pays.
+
 \end{document}

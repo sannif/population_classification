@@ -1,4 +1,4 @@
-### Classification des populations autochtones d'Amérique selon leur diversité génétique
+## Classification des populations autochtones d'Amérique selon leur diversité génétique
 
 ### Data
 Nous disposons d'un jeu de données qui contient 5709 marqueurs génétiques relevés sur 494

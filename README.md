@@ -24,7 +24,7 @@ Taux d'erreur des différentes méthodes
 |:---: | :---: |
 |ACP + logistique | 0.106  |
 |ACP + LDA | 0.096  |
-|**Logistique + Ridge | 0.053**|
+|__Logistique__ __+__ __Ridge__ | __0.053__|
 |Logistique + Lasso | 0.138  |
 |KNN | 0.149  |
 |Arbre de classification | 0.489  |

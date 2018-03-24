@@ -6,7 +6,7 @@ individus appartenant à 27 populations autochtones d'Amérique du Nord, d'Amér
 d'Amérique latine. Ce jeu de données se caractérise essentiellement par le fait qu'il y'ait plus
 de variables (5709) que d'observations (494).
 
-![alt text](https://github.com/sannif/projet_msa/tree/master/figures/map.png)
+![Location of populations](figures/map.png)
 
 
 ## Objectif

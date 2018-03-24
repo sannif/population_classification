@@ -19,14 +19,15 @@ transformées : régression logistique, LDA, KNN, arbre de décision, random for
 
 ## Résultats
 Taux d'erreur des différentes méthodes
-Méthode | Taux d'erreur |
-:---: | :---: |
-ACP + logistique | 0.106  |
-ACP + LDA | 0.096  |
-**Logistique + Ridge | 0.053  **|
-Logistique + Lasso | 0.138  |
-KNN | 0.149  |
-Arbre de classification | 0.489  |
-Pruning | 0.52  |
-Random forest | 0.32  |
-ACP + Random forest | 0.180  |
+
+|Méthode | Taux d'erreur |
+|:---: | :---: |
+|ACP + logistique | 0.106  |
+|ACP + LDA | 0.096  |
+|**Logistique + Ridge | 0.053  **|
+|Logistique + Lasso | 0.138  |
+|KNN | 0.149  |
+|Arbre de classification | 0.489  |
+|Pruning | 0.52  |
+|Random forest | 0.32  |
+|ACP + Random forest | 0.180  |

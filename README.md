@@ -6,7 +6,7 @@ individus appartenant à 27 populations autochtones d'Amérique du Nord, d'Amér
 d'Amérique latine. Ce jeu de données se caractérise essentiellement par le fait qu'il y'ait plus
 de variables (5709) que d'observations (494).
 
-![Location of populations](figures/map.png =100x20)
+![Location of populations](figures/map.png)
 
 
 ## Objectif
@@ -24,7 +24,7 @@ Taux d'erreur des différentes méthodes
 |:---: | :---: |
 |ACP + logistique | 0.106  |
 |ACP + LDA | 0.096  |
-|**Logistique + Ridge | 0.053  **|
+|**Logistique + Ridge | 0.053**|
 |Logistique + Lasso | 0.138  |
 |KNN | 0.149  |
 |Arbre de classification | 0.489  |
